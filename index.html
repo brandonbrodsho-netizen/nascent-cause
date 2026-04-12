@@ -1,0 +1,3556 @@
+<!DOCTYPE html>
+<!-- Nascent Cause v20260411-015158 -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nascent Cause — Start Your Nonprofit</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ════════════════════════════════════════
+   DESIGN TOKENS
+════════════════════════════════════════ */
+:root {
+  /* ── BRAND: Navy backgrounds ── */
+  --navy:        #0a1628;
+  --navy-mid:    #1a2f5e;
+  --navy-light:  #2a4a7f;
+  --navy-card:   #0f1e3a;
+
+  /* ── BRAND: Silver text + elements ── */
+  --silver:      #dde5f0;
+  --silver-mid:  #b8cce0;
+  --silver-muted:#8fa3bf;
+  --silver-accent:#7a94b8;
+
+  /* ── BRAND: Gradients ── */
+  --grad-navy:   linear-gradient(135deg, #0a1628 0%, #1a2f5e 100%);
+  --grad-silver: linear-gradient(135deg, #e8edf5 0%, #c0cfe0 40%, #8fa3bf 100%);
+  --grad-silver-v: linear-gradient(180deg, #dde5f0 0%, #b8cce0 50%, #8fa3bf 100%);
+
+  /* ── ACCENT COLORS (complement navy/silver) ── */
+  /* Soft teal — for active states, progress, links */
+  --teal:        #3d8eb5;
+  --teal-light:  #5aaed4;
+  --teal-pale:   rgba(61,142,181,0.12);
+
+  /* Warm amber — used sparingly for warnings and founder notes */
+  --amber:       #c49a3c;
+  --amber-light: #ddb95a;
+  --amber-pale:  rgba(196,154,60,0.12);
+
+  /* Light surface for form backgrounds and cards on light pages */
+  --surface:     #f0f4f9;
+  --surface-dark:#e2e8f0;
+  --white:       #ffffff;
+
+  /* ── LEGACY ALIASES (keep existing CSS working) ── */
+  --gold:        #c49a3c;
+  --gold-light:  #ddb95a;
+  --gold-pale:   rgba(196,154,60,0.1);
+  --gold-dim:    rgba(196,154,60,0.12);
+  --cream:       #f0f4f9;
+  --cream-dark:  #e2e8f0;
+  --text:        #dde5f0;
+  --text-mid:    #b8cce0;
+  --text-light:  #8fa3bf;
+  --border:      #2a4a7f;
+  --border-dark: #3a5a8f;
+  --claude:      #3d8eb5;
+  --claude-lt:   #5aaed4;
+  --claude-pale: rgba(61,142,181,0.12);
+  --success:     #2d8f6f;
+  --success-pale:rgba(45,143,111,0.12);
+  --warn:        #c49a3c;
+  --warn-pale:   rgba(196,154,60,0.12);
+  --danger:      #c0392b;
+
+  /* ── LAYOUT ── */
+  --tap:         48px;
+  --radius:      16px;
+  --radius-sm:   10px;
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bot:    env(safe-area-inset-bottom, 0px);
+
+  /* ── TYPOGRAPHY ── */
+  --font-serif:  'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  --font-sans:   'DM Sans', system-ui, sans-serif;
+}
+
+/* ════════════════════════════════════════
+   RESET & BASE
+════════════════════════════════════════ */
+*, *::before, *::after {
+  margin: 0; padding: 0; box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--navy);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ════════════════════════════════════════
+   PAGE SYSTEM
+════════════════════════════════════════ */
+.page {
+  display: none;
+  min-height: 100vh;
+  flex-direction: column;
+}
+.page.active { display: flex; }
+
+/* ════════════════════════════════════════
+   SHARED COMPONENTS
+════════════════════════════════════════ */
+
+/* Top bar */
+.topbar {
+  background: var(--navy);
+  padding: 14px 20px;
+  padding-top: calc(14px + var(--safe-top));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-back {
+  background: none; border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 22px; cursor: pointer;
+  min-width: var(--tap); min-height: var(--tap);
+  display: flex; align-items: center;
+  font-family: var(--font-sans);
+  flex-shrink: 0; margin-left: -8px;
+}
+
+.topbar-brand {
+  flex: 1;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.topbar-icon {
+  width: 32px; height: 32px;
+  border: 1.5px solid rgba(42,74,127,0.45);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+
+.topbar-title {
+  font-family: var(--font-serif);
+  font-size: 15px; color: rgba(255,255,255,0.9);
+}
+
+.topbar-sub {
+  font-size: 10px; color: var(--silver-muted);
+  letter-spacing: 0.07em; text-transform: uppercase;
+}
+
+.progress-bar {
+  height: 3px; background: rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+.progress-fill {
+  height: 100%; background: var(--teal);
+  transition: width 0.5s ease;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; border: none; cursor: pointer;
+  font-family: var(--font-sans); font-weight: 600;
+  transition: all 0.18s; min-height: var(--tap);
+  border-radius: var(--radius-sm);
+  -webkit-appearance: none;
+}
+
+.btn:active { transform: scale(0.97); }
+
+.btn-gold    { background: var(--teal); color: var(--white); font-size: 16px; padding: 0 28px; }
+.btn-gold:active { background: var(--teal-light); }
+
+.btn-navy    { background: var(--navy); color: var(--white); font-size: 15px; padding: 0 24px; }
+.btn-navy:active { background: var(--navy-mid); }
+
+.btn-ghost   { background: transparent; border: 1.5px solid var(--border); color: var(--text-mid); font-size: 14px; padding: 0 20px; }
+.btn-ghost:active { border-color: var(--navy); color: var(--navy); }
+
+.btn-claude  { background: var(--claude); color: var(--white); font-size: 15px; padding: 0 24px; }
+.btn-claude:active { background: var(--claude-lt); }
+
+.btn-success { background: var(--success); color: var(--white); font-size: 15px; padding: 0 24px; }
+
+.btn-full    { width: 100%; border-radius: var(--radius); font-size: 16px; padding: 0; min-height: 54px; }
+
+/* Cards */
+.card {
+  background: var(--navy-card);
+  border: 1px solid var(--navy-light);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* Founder note */
+.founder-note {
+  background: var(--gold-pale);
+  border: 1px solid rgba(200,146,58,0.25);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.founder-note-icon { font-size: 18px; flex-shrink: 0; }
+.founder-note-body { flex: 1; }
+.founder-note-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--silver-muted); margin-bottom: 4px;
+}
+.founder-note-text {
+  font-size: 13px; color: var(--text-mid);
+  line-height: 1.62; font-style: italic;
+}
+
+/* Info callout */
+.callout {
+  border-radius: var(--radius-sm);
+  padding: 13px 15px;
+  display: flex; gap: 10px; align-items: flex-start;
+  font-size: 13px; line-height: 1.6;
+}
+.callout.warn  { background: var(--warn-pale); color: var(--warn); border: 1px solid rgba(180,83,9,0.2); }
+.callout.info  { background: var(--claude-pale); color: var(--claude); border: 1px solid rgba(91,79,207,0.2); }
+.callout.good  { background: var(--success-pale); color: var(--success); border: 1px solid rgba(26,122,74,0.2); }
+.callout-icon  { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.callout strong { font-weight: 700; }
+
+/* Section label */
+.section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--silver-muted);
+  margin-bottom: 10px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--navy-light);
+}
+
+/* Scrollable body */
+.scroll-body {
+  flex: 1; overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 16px;
+  padding-bottom: calc(20px + var(--safe-bot));
+}
+
+/* Fixed bottom nav */
+.bottom-nav {
+  background: var(--navy-card);
+  border-top: 1px solid var(--navy-light);
+  padding: 12px 16px;
+  padding-bottom: calc(12px + var(--safe-bot));
+  display: flex; gap: 10px;
+  flex-shrink: 0; position: sticky; bottom: 0; z-index: 50;
+}
+
+/* ════════════════════════════════════════
+   PAGE 1 — LANDING
+════════════════════════════════════════ */
+#pg-landing {
+  background:
+    radial-gradient(ellipse at 18% 12%, rgba(61,142,181,0.08) 0%, transparent 52%),
+    radial-gradient(ellipse at 84% 78%, rgba(42,74,127,0.15) 0%, transparent 52%),
+    linear-gradient(168deg, #0a1628 0%, #0d1d3a 55%, #080f1e 100%);
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+#pg-landing::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(1.5px 1.5px at 11% 17%, rgba(255,255,255,0.17) 0%, transparent 100%),
+    radial-gradient(1px 1px at 38% 7%,  rgba(255,255,255,0.11) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 71% 23%, rgba(255,255,255,0.13) 0%, transparent 100%),
+    radial-gradient(1px 1px at 26% 71%, rgba(255,255,255,0.08) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 87% 13%, rgba(255,255,255,0.12) 0%, transparent 100%),
+    radial-gradient(1px 1px at 54% 86%, rgba(255,255,255,0.07) 0%, transparent 100%),
+    radial-gradient(1px 1px at 93% 57%, rgba(255,255,255,0.10) 0%, transparent 100%),
+    radial-gradient(1px 1px at 62% 44%, rgba(255,255,255,0.06) 0%, transparent 100%);
+}
+
+.landing-nav {
+  position: relative; z-index: 10;
+  padding: calc(28px + var(--safe-top)) 24px 0;
+  display: flex; align-items: center; gap: 12px;
+}
+
+.landing-logo-mark {
+  width: 38px; height: 38px;
+  border: 1.5px solid rgba(42,74,127,0.5);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+}
+
+.landing-brand-name {
+  font-family: var(--font-serif); font-size: 14px;
+  color: rgba(255,255,255,0.85); line-height: 1.2;
+}
+
+.landing-brand-sub {
+  font-size: 10px; color: var(--gold-light);
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+.landing-hero {
+  position: relative; z-index: 10;
+  padding: 52px 24px 44px;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+}
+
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--gold-light); margin-bottom: 26px;
+  opacity: 0; animation: fadeUp 0.6s ease 0.1s forwards;
+}
+.eyebrow-rule { width: 22px; height: 1px; background: var(--silver-muted); opacity: 0.55; }
+
+.hero-h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(34px, 9vw, 56px);
+  color: var(--white); line-height: 1.1;
+  margin-bottom: 18px;
+  opacity: 0; animation: fadeUp 0.6s ease 0.25s forwards;
+}
+.hero-h1 em { color: var(--silver-mid); font-style: italic; }
+
+.hero-sub {
+  font-size: 16px; color: rgba(255,255,255,0.55);
+  line-height: 1.75; max-width: 340px;
+  font-weight: 300; margin-bottom: 32px;
+  opacity: 0; animation: fadeUp 0.6s ease 0.38s forwards;
+}
+
+.founder-card-landing {
+  background: rgba(255,255,255,0.055);
+  border: 1px solid rgba(200,146,58,0.22);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex; gap: 14px; align-items: flex-start;
+  text-align: left; max-width: 360px; width: 100%;
+  margin-bottom: 36px;
+  opacity: 0; animation: fadeUp 0.6s ease 0.5s forwards;
+}
+
+.founder-avatar {
+  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--navy-mid), var(--navy-light));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px;
+}
+
+.founder-card-text { flex: 1; }
+.founder-card-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--gold-light); margin-bottom: 5px;
+}
+.founder-card-quote {
+  font-size: 13px; color: rgba(255,255,255,0.55);
+  line-height: 1.65; font-style: italic;
+}
+
+.hero-cta {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  width: 100%; max-width: 320px;
+  opacity: 0; animation: fadeUp 0.6s ease 0.65s forwards;
+}
+
+.hero-cta-note { font-size: 12px; color: rgba(255,255,255,0.28); }
+
+/* Pillars */
+.landing-pillars {
+  display: block;
+  position: relative; z-index: 10;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding: 0 24px calc(48px + var(--safe-bot));
+  opacity: 0; animation: fadeUp 0.6s ease 0.85s forwards;
+}
+
+.pillar {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.pillar:last-child { border-bottom: none; }
+
+.pillar-icon-box {
+  width: 40px; height: 40px; flex-shrink: 0;
+  background: var(--gold-dim); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+
+.pillar-label { font-size: 13px; font-weight: 700; color: var(--gold-light); margin-bottom: 3px; }
+.pillar-desc  { font-size: 12px; color: rgba(255,255,255,0.38); line-height: 1.55; font-weight: 300; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ════════════════════════════════════════
+   PAGE 2 — CONVERSATION
+════════════════════════════════════════ */
+#pg-convo { background: var(--navy-card); }
+
+.messages-area {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 18px 16px 12px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+/* Message bubbles */
+.msg { display: flex; gap: 10px; align-items: flex-start; animation: msgIn 0.32s ease; }
+.msg.user { flex-direction: row-reverse; }
+
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.msg-av {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; margin-top: 2px;
+}
+.msg.claude .msg-av { background: linear-gradient(135deg, var(--claude), var(--navy-light)); color: white; font-family: var(--font-serif); }
+.msg.user   .msg-av { background: var(--teal); color: var(--white); }
+
+.msg-wrap { max-width: calc(100% - 50px); }
+
+.msg-name {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
+  text-transform: uppercase; margin-bottom: 5px;
+  color: var(--text-light);
+}
+.msg.user .msg-name { text-align: right; color: var(--silver-muted); }
+
+.msg-bubble {
+  padding: 13px 16px; border-radius: 18px;
+  font-size: 15px; line-height: 1.68;
+}
+.msg.claude .msg-bubble {
+  background: var(--white); color: var(--text);
+  border-radius: 4px 18px 18px 18px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+}
+.msg.user .msg-bubble {
+  background: var(--navy); color: rgba(255,255,255,0.9);
+  border-radius: 18px 4px 18px 18px;
+}
+
+/* Inline founder note inside message */
+.msg-founder {
+  margin-top: 10px;
+  background: var(--gold-pale);
+  border: 1px solid rgba(200,146,58,0.22);
+  border-radius: 10px;
+  padding: 11px 13px;
+  display: flex; gap: 9px; align-items: flex-start;
+}
+.msg-founder-icon { font-size: 14px; flex-shrink: 0; }
+.msg-founder-body { font-size: 12px; color: var(--text-mid); line-height: 1.6; font-style: italic; }
+.msg-founder-label {
+  display: block; font-size: 10px; font-style: normal; font-weight: 700;
+  color: var(--silver-muted); letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+/* Typing indicator */
+.typing-wrap { display: none; gap: 10px; align-items: center; animation: msgIn 0.3s ease; }
+.typing-wrap.active { display: flex; }
+
+.typing-av {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--claude), var(--navy-light));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: white; font-family: var(--font-serif);
+}
+
+.typing-dots {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 4px 18px 18px 18px;
+  padding: 14px 18px; display: flex; gap: 5px; align-items: center;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+}
+
+.typing-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-light); animation: dotBounce 1.2s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes dotBounce {
+  0%,60%,100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* Input */
+.input-row {
+  background: var(--white); border-top: 1px solid var(--border);
+  padding: 12px 16px; padding-bottom: calc(12px + var(--safe-bot));
+  display: flex; gap: 10px; align-items: flex-end;
+  flex-shrink: 0; position: sticky; bottom: 0;
+}
+
+.msg-input {
+  flex: 1; padding: 13px 16px;
+  border: 1.5px solid var(--border); border-radius: 22px;
+  font-family: var(--font-sans); font-size: 16px;
+  color: var(--text); background: var(--cream);
+  resize: none; outline: none;
+  min-height: 48px; max-height: 120px;
+  line-height: 1.5; transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.msg-input:focus { border-color: var(--claude); background: var(--white); }
+.msg-input::placeholder { color: var(--text-light); }
+
+.send-btn {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--claude); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px; color: white; flex-shrink: 0; transition: all 0.18s;
+}
+.send-btn:active { background: var(--claude-lt); transform: scale(0.94); }
+.send-btn:disabled { opacity: 0.32; }
+
+/* ════════════════════════════════════════
+   PAGE 3 — BUILDING
+════════════════════════════════════════ */
+#pg-building {
+  background: var(--navy);
+  align-items: center; justify-content: center;
+  text-align: center; padding: 48px 28px; gap: 24px;
+}
+
+.build-ring {
+  width: 70px; height: 70px;
+  border: 3px solid rgba(200,146,58,0.14);
+  border-top-color: var(--teal);
+  border-right-color: rgba(200,146,58,0.42);
+  border-radius: 50%; animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.build-title { font-family: var(--font-serif); font-size: 26px; color: var(--white); }
+.build-sub   { font-size: 14px; color: rgba(255,255,255,0.4); max-width: 280px; line-height: 1.7; font-weight: 300; }
+
+.build-steps { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+.build-step  {
+  font-size: 13px; color: rgba(255,255,255,0.2);
+  display: flex; align-items: center; gap: 10px; text-align: left;
+  transition: color 0.4s;
+}
+.build-step.lit  { color: var(--teal-light); }
+.build-step.done { color: rgba(255,255,255,0.45); }
+.build-step-dot  { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+/* ════════════════════════════════════════
+   PAGE 4 — DASHBOARD
+════════════════════════════════════════ */
+#pg-dash { background: var(--navy); }
+
+.dash-header {
+  background: var(--navy);
+  padding: 20px 20px 24px;
+  padding-top: calc(20px + var(--safe-top));
+  flex-shrink: 0;
+}
+
+.dash-org-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 4px;
+}
+
+.dash-org-name {
+  font-family: var(--font-serif); font-size: 22px;
+  color: var(--white); margin-bottom: 6px; line-height: 1.2;
+}
+
+.dash-org-mission {
+  font-size: 13px; color: rgba(255,255,255,0.45);
+  line-height: 1.6; font-style: italic; margin-bottom: 14px;
+}
+
+.dash-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+
+.dash-chip {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.6);
+  font-size: 12px; font-weight: 500;
+  padding: 4px 11px; border-radius: 20px;
+}
+
+.dash-chip.gold {
+  background: rgba(61,142,181,0.15);
+  border-color: rgba(61,142,181,0.3);
+  color: var(--teal-light);
+}
+
+/* Journey tracker */
+.journey-card {
+  background: var(--navy-card);
+  border: 1px solid var(--navy-light);
+  border-radius: var(--radius);
+  overflow: hidden; margin-bottom: 14px;
+}
+
+.journey-header {
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.journey-header-title {
+  font-size: 13px; font-weight: 700;
+  color: var(--silver); letter-spacing: 0.03em;
+}
+
+.journey-pct {
+  font-size: 12px; font-weight: 700; color: var(--teal-light);
+}
+
+.journey-stages { padding: 4px 0; }
+
+.journey-stage {
+  display: flex; gap: 14px; align-items: center;
+  padding: 13px 16px; cursor: pointer; transition: background 0.15s;
+  min-height: var(--tap);
+}
+
+.journey-stage:not(:last-child) { border-bottom: 1px solid var(--border); }
+.journey-stage:active { background: var(--cream); }
+
+.stage-indicator {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; transition: all 0.3s;
+}
+
+.stage-indicator.done    { background: var(--success); color: white; }
+.stage-indicator.active  { background: var(--teal); color: var(--white); box-shadow: 0 0 0 4px rgba(61,142,181,0.2); }
+.stage-indicator.locked  { background: var(--navy-light); color: var(--silver-muted); }
+
+.stage-body { flex: 1; }
+.stage-name  { font-size: 14px; font-weight: 600; color: var(--silver); margin-bottom: 2px; }
+.stage-desc  { font-size: 12px; color: var(--text-light); line-height: 1.4; }
+
+.stage-chevron { font-size: 16px; color: var(--text-light); }
+.stage-indicator.locked ~ * .stage-name { color: var(--text-light); }
+
+/* Module cards */
+.module-card {
+  background: var(--navy-card);
+  border: 1px solid var(--navy-light);
+  border-radius: var(--radius);
+  overflow: hidden; margin-bottom: 14px;
+  transition: box-shadow 0.2s;
+}
+
+.module-card:active { box-shadow: 0 2px 16px rgba(0,0,0,0.07); }
+
+.module-card-top {
+  padding: 16px;
+  display: flex; gap: 14px; align-items: flex-start;
+}
+
+.module-icon {
+  width: 46px; height: 46px; flex-shrink: 0;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+
+.module-icon.navy   { background: var(--navy); }
+.module-icon.gold   { background: var(--gold-dim); border: 1px solid rgba(200,146,58,0.25); }
+.module-icon.claude { background: var(--claude-pale); border: 1px solid rgba(91,79,207,0.2); }
+.module-icon.green  { background: var(--success-pale); border: 1px solid rgba(26,122,74,0.2); }
+.module-icon.locked { background: var(--cream-dark); }
+
+.module-info { flex: 1; }
+.module-title { font-family: var(--font-serif); font-size: 16px; color: var(--silver); margin-bottom: 3px; }
+.module-desc  { font-size: 13px; color: var(--text-light); line-height: 1.5; }
+
+.module-status {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 4px 10px; border-radius: 20px;
+  white-space: nowrap; flex-shrink: 0; margin-top: 2px;
+}
+.module-status.done    { background: var(--success-pale); color: var(--success); }
+.module-status.active  { background: rgba(61,142,181,0.15); color: var(--teal-light); }
+.module-status.next    { background: var(--claude-pale); color: var(--claude); }
+.module-status.coming  { background: var(--cream-dark); color: var(--text-light); }
+
+.module-action {
+  border-top: 1px solid var(--navy-light);
+  padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.module-action-text { font-size: 13px; color: var(--silver-muted); }
+
+.module-action-btn {
+  font-size: 13px; font-weight: 700; padding: 8px 16px;
+  border-radius: 8px; min-height: 36px;
+}
+
+/* Compliance pulse */
+.compliance-card {
+  background: var(--navy-card);
+  border: 1px solid rgba(200,146,58,0.15);
+  border-radius: var(--radius);
+  padding: 18px; margin-bottom: 14px;
+}
+
+.compliance-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: rgba(255,255,255,0.4);
+  margin-bottom: 12px;
+}
+
+.compliance-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.compliance-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+.compliance-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  margin-top: 5px;
+}
+.compliance-dot.ok      { background: var(--success); }
+.compliance-dot.warn    { background: var(--amber); }
+.compliance-dot.pending { background: rgba(255,255,255,0.25); }
+
+.compliance-item-label { font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.4; }
+.compliance-item-sub   { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+
+/* Docs section */
+.doc-row {
+  background: var(--navy-card); border: 1px solid var(--navy-light);
+  border-radius: var(--radius-sm); margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.doc-row-top {
+  padding: 13px 16px; display: flex; gap: 12px; align-items: center;
+  cursor: pointer; min-height: var(--tap);
+}
+
+.doc-row-icon { font-size: 20px; flex-shrink: 0; width: 28px; text-align: center; }
+.doc-row-name { font-size: 14px; font-weight: 600; color: var(--silver); flex: 1; }
+.doc-row-chevron { font-size: 16px; color: var(--text-light); transition: transform 0.25s; }
+.doc-row.open .doc-row-chevron { transform: rotate(90deg); }
+
+.doc-row-body { display: none; border-top: 1px solid var(--border); }
+.doc-row.open .doc-row-body { display: block; }
+
+.doc-row-text {
+  padding: 14px 16px; font-size: 13px; line-height: 1.85;
+  color: var(--silver-mid); white-space: pre-wrap; font-family: var(--font-sans);
+  max-height: 260px; overflow-y: auto; background: var(--navy);
+  -webkit-overflow-scrolling: touch;
+}
+
+.doc-row-actions { padding: 11px 16px; display: flex; gap: 8px; background: var(--navy-card); }
+
+.doc-copy-btn {
+  flex: 1; background: var(--navy); color: white; border: none;
+  border-radius: 8px; padding: 10px; font-family: var(--font-sans);
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  min-height: 40px; display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.18s;
+}
+.doc-copy-btn:active { background: var(--navy-mid); transform: scale(0.98); }
+.doc-copy-btn.copied { background: var(--success); }
+
+.doc-share-btn {
+  background: var(--cream-dark); border: none; border-radius: 8px;
+  padding: 10px 14px; font-size: 14px; cursor: pointer; min-height: 40px;
+}
+
+/* ════════════════════════════════════════
+   PAGE 5 — 1023-EZ WALKTHROUGH
+════════════════════════════════════════ */
+#pg-1023 { background: var(--navy-card); }
+
+.q-part-banner {
+  background: var(--navy-mid);
+  padding: 18px 20px; flex-shrink: 0;
+  display: flex; gap: 14px; align-items: center;
+}
+
+.q-part-num {
+  width: 42px; height: 42px; flex-shrink: 0;
+  background: var(--gold-dim); border: 1px solid rgba(200,146,58,0.3);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif); font-size: 17px; font-weight: 700; color: var(--gold-light);
+}
+
+.q-part-label { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 3px; }
+.q-part-title { font-family: var(--font-serif); font-size: 16px; color: var(--white); }
+
+.q-scroll-body {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 16px 16px calc(80px + var(--safe-bot));
+}
+
+.q-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  animation: qIn 0.3s ease;
+}
+
+@keyframes qIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.q-card-head { padding: 16px 16px 12px; }
+.q-num { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--claude); margin-bottom: 7px; }
+.q-label { font-family: var(--font-serif); font-size: 18px; color: var(--navy); line-height: 1.3; }
+
+.q-plain {
+  padding: 13px 16px; background: var(--cream);
+  border-top: 1px solid var(--border);
+  font-size: 13px; color: var(--text-mid); line-height: 1.68;
+}
+.q-plain-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-light); margin-bottom: 6px;
+}
+
+.q-input-wrap { padding: 13px 16px 16px; border-top: 1px solid var(--border); }
+
+.q-input {
+  width: 100%; padding: 13px 15px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  font-family: var(--font-sans); font-size: 16px; color: var(--text);
+  background: var(--navy-card); outline: none; transition: all 0.2s; color: var(--silver);
+  -webkit-appearance: none;
+}
+.q-input:focus { border-color: var(--claude); background: var(--white); box-shadow: 0 0 0 3px rgba(91,79,207,0.08); }
+
+.q-input-hint { font-size: 12px; color: var(--text-light); margin-top: 7px; line-height: 1.5; }
+
+/* Option buttons */
+.q-options { display: flex; flex-direction: column; gap: 8px; }
+
+.q-opt {
+  width: 100%; background: var(--cream); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 13px 15px;
+  text-align: left; cursor: pointer; transition: all 0.18s;
+  min-height: var(--tap); font-family: var(--font-sans);
+}
+.q-opt.selected { background: var(--claude-pale); border-color: var(--claude); }
+.q-opt:active { transform: scale(0.99); }
+
+.q-opt-label { font-size: 15px; font-weight: 600; color: var(--text); display: block; margin-bottom: 2px; }
+.q-opt.selected .q-opt-label { color: var(--claude); }
+.q-opt-desc { font-size: 12px; color: var(--text-light); }
+
+/* Autofill */
+.q-autofill {
+  background: var(--success-pale);
+  border: 1.5px solid rgba(26,122,74,0.25);
+  border-radius: var(--radius-sm); padding: 13px 15px;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.q-autofill-icon { font-size: 18px; flex-shrink: 0; }
+.q-autofill-val { font-size: 15px; font-weight: 700; color: var(--success); margin-bottom: 3px; }
+.q-autofill-note { font-size: 12px; color: var(--text-light); line-height: 1.5; }
+.q-autofill-change { font-size: 12px; color: var(--claude); font-weight: 600; background: none; border: none; padding: 0; cursor: pointer; font-family: var(--font-sans); margin-top: 6px; display: block; }
+
+/* Confirm checkbox */
+.q-confirm-row {
+  display: flex; gap: 13px; align-items: flex-start;
+  padding: 2px 0; cursor: pointer;
+}
+.q-check-box {
+  width: 24px; height: 24px; border: 2px solid var(--border);
+  border-radius: 6px; flex-shrink: 0; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; transition: all 0.18s; background: var(--white);
+}
+.q-check-box.on { background: var(--claude); border-color: var(--claude); color: white; }
+.q-confirm-label { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.5; flex: 1; }
+
+/* NTEE two-step */
+.ntee-bucket-list { display: flex; flex-direction: column; gap: 8px; }
+
+.ntee-bucket {
+  background: var(--cream); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 13px 15px;
+  cursor: pointer; transition: all 0.18s; min-height: var(--tap);
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.ntee-bucket.selected { background: var(--claude-pale); border-color: var(--claude); }
+.ntee-bucket:active { transform: scale(0.99); }
+.ntee-b-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.ntee-b-label { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.ntee-bucket.selected .ntee-b-label { color: var(--claude); }
+.ntee-b-examples { font-size: 12px; color: var(--text-light); line-height: 1.45; }
+
+.ntee-step2 { display: none; margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px; animation: fadeUp 0.3s ease; }
+.ntee-step2.active { display: block; }
+
+.ntee-step2-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-light); margin-bottom: 9px;
+}
+
+.ntee-refined { display: flex; flex-direction: column; gap: 7px; }
+
+.ntee-r-item {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  cursor: pointer; transition: all 0.18s; min-height: var(--tap);
+  display: flex; gap: 11px; align-items: flex-start;
+}
+.ntee-r-item.selected { background: var(--claude-pale); border-color: var(--claude); }
+.ntee-r-item:active { transform: scale(0.99); }
+
+.ntee-r-code {
+  font-size: 11px; font-weight: 800; color: var(--claude);
+  background: var(--claude-pale); padding: 3px 8px;
+  border-radius: 6px; flex-shrink: 0; margin-top: 2px; letter-spacing: 0.05em;
+}
+.ntee-r-item.selected .ntee-r-code { background: rgba(91,79,207,0.18); }
+
+.ntee-r-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.ntee-r-item.selected .ntee-r-name { color: var(--claude); }
+.ntee-r-desc { font-size: 12px; color: var(--text-light); line-height: 1.4; }
+
+.ntee-confirm {
+  display: none; margin-top: 12px;
+  background: var(--success-pale); border: 1px solid rgba(26,122,74,0.22);
+  border-radius: var(--radius-sm); padding: 13px 15px;
+  animation: fadeUp 0.3s ease;
+}
+.ntee-confirm.active { display: block; }
+.ntee-confirm-code { font-size: 11px; font-weight: 800; color: var(--success); letter-spacing: 0.07em; margin-bottom: 4px; }
+.ntee-confirm-name { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.ntee-confirm-why  { font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+.ntee-change-btn   { font-size: 12px; color: var(--claude); font-weight: 600; background: none; border: none; padding: 0; cursor: pointer; font-family: var(--font-sans); margin-top: 7px; display: block; }
+
+/* Answer sheet */
+.answer-sheet-header {
+  background: var(--navy); padding: 28px 20px; text-align: center; flex-shrink: 0;
+}
+.answer-check-ring {
+  width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 14px;
+  background: rgba(26,122,74,0.2); border: 2px solid rgba(26,122,74,0.4);
+  display: flex; align-items: center; justify-content: center; font-size: 26px;
+}
+.answer-sheet-title { font-family: var(--font-serif); font-size: 22px; color: var(--white); margin-bottom: 5px; }
+.answer-sheet-sub   { font-size: 13px; color: rgba(255,255,255,0.42); line-height: 1.6; max-width: 280px; margin: 0 auto; }
+
+.answer-part-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-light);
+  padding: 10px 0 8px; border-bottom: 1px solid var(--border); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 7px;
+}
+
+.answer-row {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 13px 15px; margin-bottom: 8px;
+}
+.answer-field { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-light); margin-bottom: 4px; }
+.answer-value { font-size: 15px; color: var(--navy); font-weight: 600; line-height: 1.4; }
+.answer-value.long { font-size: 13px; font-weight: 400; color: var(--text-mid); line-height: 1.65; }
+.answer-note  { font-size: 12px; color: var(--text-light); margin-top: 4px; line-height: 1.5; font-style: italic; }
+
+/* How to use */
+.how-to-use {
+  background: var(--claude-pale); border: 1px solid rgba(91,79,207,0.18);
+  border-radius: var(--radius-sm); padding: 15px; margin-bottom: 16px;
+}
+.how-to-use-title {
+  font-size: 12px; font-weight: 700; color: var(--claude);
+  letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px;
+}
+.how-step { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--text-mid); line-height: 1.55; margin-bottom: 7px; }
+.how-step:last-child { margin-bottom: 0; }
+.how-step-n {
+  width: 20px; height: 20px; background: var(--claude); color: white;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+}
+
+/* Wait callout */
+.wait-box {
+  background: var(--navy-mid); border-radius: var(--radius-sm);
+  padding: 17px; margin-top: 16px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.wait-icon { font-size: 20px; flex-shrink: 0; }
+.wait-text { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.65; }
+.wait-text strong { color: var(--gold-light); font-weight: 600; }
+
+/* ════════════════════════════════════════
+   DESKTOP LAYOUT — applied via body.is-desktop class
+   JS adds this class when window >= 768px
+════════════════════════════════════════ */
+
+/* ── LANDING ── */
+body.is-desktop .landing-nav {
+  padding: 32px 60px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+body.is-desktop .landing-hero {
+  padding: 72px 48px 56px;
+  max-width: 860px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+body.is-desktop .hero-h1 { font-size: 68px; }
+body.is-desktop .hero-sub { font-size: 18px; max-width: 520px; }
+body.is-desktop .founder-card-landing { max-width: 520px; padding: 22px 26px; }
+body.is-desktop .hero-cta { max-width: 380px; }
+
+body.is-desktop .btn-start {
+  font-size: 18px;
+  padding: 20px 52px;
+  border-radius: 16px;
+}
+
+/* Pillars — 4 column horizontal grid */
+body.is-desktop .landing-pillars {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 0 60px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+body.is-desktop .pillar {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 28px 32px;
+  border-bottom: none !important;
+  border-right: 1px solid rgba(255,255,255,0.07);
+  gap: 14px;
+  align-items: flex-start;
+}
+
+body.is-desktop .pillar:last-child { border-right: none; }
+body.is-desktop .pillar-label { font-size: 14px; }
+body.is-desktop .pillar-desc { font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.5); }
+
+/* ── TOPBAR ── */
+body.is-desktop .topbar { padding: 16px 48px; }
+body.is-desktop .topbar-title { font-size: 17px; }
+
+/* ── CONVERSATION ── */
+body.is-desktop .messages-area {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 28px 48px 16px;
+}
+
+body.is-desktop .msg-wrap { max-width: 65%; }
+body.is-desktop .msg-bubble { font-size: 15px; line-height: 1.72; padding: 15px 20px; }
+
+body.is-desktop .input-row {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 14px 48px 20px;
+}
+
+body.is-desktop .msg-input { font-size: 15px; padding: 14px 22px; }
+
+/* ── DASHBOARD HEADER ── */
+body.is-desktop .dash-header { padding: 32px 48px 36px; }
+body.is-desktop .dash-org-name { font-size: 28px; }
+body.is-desktop .dash-org-mission { font-size: 14px; max-width: 640px; }
+
+/* Dashboard two-column grid */
+body.is-desktop #pg-dash .scroll-body {
+  display: grid !important;
+  grid-template-columns: 300px 1fr !important;
+  gap: 0 28px;
+  align-items: start;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 48px 48px;
+}
+
+body.is-desktop .journey-card {
+  grid-column: 1;
+  position: sticky;
+  top: 72px;
+}
+
+body.is-desktop #modules-list,
+body.is-desktop #compliance-card,
+body.is-desktop #docs-list,
+body.is-desktop #pg-dash .founder-note { grid-column: 2; }
+
+body.is-desktop #pg-dash .scroll-body > .section-label:first-of-type { grid-column: 1; }
+body.is-desktop #pg-dash .scroll-body > .section-label:not(:first-of-type) { grid-column: 2; }
+
+/* Module hover */
+body.is-desktop .module-card:hover {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+  transform: translateY(-1px);
+  transition: all 0.2s;
+}
+
+body.is-desktop .module-title { font-size: 17px; }
+body.is-desktop .doc-row-text { max-height: 380px; }
+
+/* ── 1023-EZ ── */
+body.is-desktop .q-scroll-body {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 48px 80px;
+}
+
+body.is-desktop .q-label { font-size: 20px; }
+body.is-desktop .q-plain { font-size: 14px; padding: 16px 24px; }
+body.is-desktop .q-input-wrap { padding: 16px 24px 20px; }
+
+/* ── HOVER STATES ── */
+body.is-desktop .btn-gold:hover {
+  background: var(--gold-light);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(200,146,58,0.3);
+}
+body.is-desktop .btn-navy:hover { background: var(--navy-mid); transform: translateY(-1px); }
+body.is-desktop .btn-ghost:hover { border-color: var(--navy); color: var(--navy); }
+body.is-desktop .journey-stage:hover { background: var(--cream); }
+body.is-desktop .doc-row-top:hover { background: var(--cream); cursor: pointer; }
+
+/* ── SCROLLBARS ── */
+body.is-desktop ::-webkit-scrollbar { width: 6px; height: 6px; }
+body.is-desktop ::-webkit-scrollbar-track { background: transparent; }
+body.is-desktop ::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 3px; }
+body.is-desktop ::-webkit-scrollbar-thumb:hover { background: var(--text-light); }
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     PAGE 1 — LANDING
+══════════════════════════════════════ -->
+<div class="page active" id="pg-landing">
+  <nav class="landing-nav" style="display:flex;align-items:center;justify-content:space-between;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 160" width="220" height="73" style="display:block;">
+      <defs>
+        <linearGradient id="navyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#0a1628;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#1a2f5e;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#e8edf5;stop-opacity:1" />
+          <stop offset="40%" style="stop-color:#c0cfe0;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#8fa3bf;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="silverText" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#dde5f0;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#b8cce0;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#8fa3bf;stop-opacity:1" />
+        </linearGradient>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0a1628" flood-opacity="0.4"/>
+        </filter>
+      </defs>
+      <circle cx="78" cy="102" r="38" fill="none" stroke="url(#silverGrad)" stroke-width="1.5" opacity="0.25"/>
+      <line x1="32" y1="102" x2="124" y2="102" stroke="url(#silverGrad)" stroke-width="1.5" opacity="0.5"/>
+      <path d="M 40 102 A 38 38 0 0 1 116 102" fill="none" stroke="url(#silverGrad)" stroke-width="2.5" filter="url(#glow)" opacity="0.9"/>
+      <path d="M 52 102 A 26 26 0 0 1 104 102" fill="none" stroke="url(#silverGrad)" stroke-width="1.5" opacity="0.6"/>
+      <path d="M 63 102 A 15 15 0 0 1 93 102" fill="none" stroke="#dde5f0" stroke-width="1" opacity="0.4"/>
+      <circle cx="78" cy="102" r="4" fill="url(#silverGrad)" filter="url(#glow)" opacity="0.95"/>
+      <circle cx="78" cy="102" r="2" fill="#e8edf5"/>
+      <line x1="78" y1="96" x2="78" y2="70" stroke="url(#silverGrad)" stroke-width="1.5" stroke-linecap="round" opacity="0.7" filter="url(#glow)"/>
+      <line x1="78" y1="96" x2="63" y2="73" stroke="url(#silverGrad)" stroke-width="1" stroke-linecap="round" opacity="0.45"/>
+      <line x1="78" y1="96" x2="93" y2="73" stroke="url(#silverGrad)" stroke-width="1" stroke-linecap="round" opacity="0.45"/>
+      <line x1="78" y1="96" x2="53" y2="80" stroke="url(#silverGrad)" stroke-width="0.75" stroke-linecap="round" opacity="0.25"/>
+      <line x1="78" y1="96" x2="103" y2="80" stroke="url(#silverGrad)" stroke-width="0.75" stroke-linecap="round" opacity="0.25"/>
+      <text x="148" y="88" font-family="'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif" font-size="38" font-weight="700" letter-spacing="6" fill="url(#silverText)" filter="url(#shadow)">NASCENT</text>
+      <line x1="148" y1="97" x2="448" y2="97" stroke="url(#silverGrad)" stroke-width="0.75" opacity="0.35"/>
+      <text x="149" y="128" font-family="'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif" font-size="22" font-weight="400" letter-spacing="14" fill="url(#silverText)" opacity="0.85">CAUSE</text>
+      <text x="149" y="148" font-family="'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif" font-size="9" font-weight="400" letter-spacing="3.5" fill="#7a94b8" opacity="0.7">YOUR NONPROFIT STARTS HERE</text>
+    </svg>
+    <button onclick="showPage('pg-login')" style="background:none;border:1px solid var(--navy-light);color:var(--silver-muted);font-size:13px;font-weight:600;padding:8px 18px;border-radius:8px;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;">Sign In</button>
+  </nav>
+
+  <div class="landing-hero">
+    <div class="hero-eyebrow">
+      <div class="eyebrow-rule"></div>
+      Built by a founder who did it himself
+      <div class="eyebrow-rule"></div>
+    </div>
+
+    <h1 class="hero-h1">Your cause deserves<br>to be <em>official.</em></h1>
+
+    <p class="hero-sub">Starting a 501(c)(3) feels overwhelming. It doesn't have to be. Tell us what you want to build — we handle everything else, from your first document to your federal approval.</p>
+
+    <div class="founder-card-landing">
+      <div class="founder-avatar" style="background:linear-gradient(135deg,#1a2f5e,#0a1628);border:1px solid #2a4a7f;">✦</div>
+      <div class="founder-card-text">
+        <div class="founder-card-label">From the Founder</div>
+        <div class="founder-card-quote">"I built Roll Out PTSD, Inc. without a lawyer. No consultant, no expensive guide. Just research and determination — and figuring it out step by step. I made this so you don't have to figure it out alone."</div>
+      </div>
+    </div>
+
+    <div class="hero-cta">
+      <button class="btn btn-gold btn-full" onclick="startJourney()">
+        Tell us your vision →
+      </button>
+      <div class="hero-cta-note">✦ No forms yet — just a conversation</div>
+
+      <div style="margin-top:8px;">
+        <button onclick="showPage('pg-signup')" style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:12px;cursor:pointer;font-family:var(--font-sans);padding:8px 0;text-decoration:underline;text-underline-offset:3px;">
+          Skip the AI — I know what I need
+        </button>
+      </div>
+    </div>
+
+    <!-- DEV: Quick test access — remove before launch -->
+    <div style="margin-top:24px;opacity:0;animation:fadeUp 0.6s ease 1s forwards;">
+      <button onclick="quickTestDash()" style="background:none;border:1px dashed rgba(255,255,255,0.15);color:rgba(255,255,255,0.25);font-size:11px;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:DM Sans,sans-serif;">
+        🔧 Test Dashboard (skip conversation)
+      </button>
+    </div>
+  </div>
+
+  </div>
+
+  <div class="landing-pillars">
+    <div class="pillar">
+      <div class="pillar-icon-box">💬</div>
+      <div>
+        <div class="pillar-label">Conversation First</div>
+        <div class="pillar-desc">Tell Claude what you want to build. No jargon, no forms — just talk about your vision.</div>
+      </div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-icon-box">⚡</div>
+      <div>
+        <div class="pillar-label">Everything Generated</div>
+        <div class="pillar-desc">Bylaws, policies, checklists — all built with your actual information, ready to file.</div>
+      </div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-icon-box">🗺️</div>
+      <div>
+        <div class="pillar-label">Guided Every Step</div>
+        <div class="pillar-desc">From incorporation to federal approval to ongoing compliance — your dashboard grows with you.</div>
+      </div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-icon-box">🏛️</div>
+      <div>
+        <div class="pillar-label">All 50 States + Territories</div>
+        <div class="pillar-desc">State-specific guidance for every US state and territory, including Puerto Rico and Guam.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 2 — CONVERSATION
+══════════════════════════════════════ -->
+<div class="page" id="pg-convo">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78 78" width="30" height="30">
+        <defs>
+          <linearGradient id="mSG" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#e8edf5;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#8fa3bf;stop-opacity:1" />
+          </linearGradient>
+          <filter id="mGlow">
+            <feGaussianBlur stdDeviation="1.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <circle cx="39" cy="48" r="22" fill="none" stroke="url(#mSG)" stroke-width="1" opacity="0.3"/>
+        <line x1="12" y1="48" x2="66" y2="48" stroke="url(#mSG)" stroke-width="1" opacity="0.5"/>
+        <path d="M 17 48 A 22 22 0 0 1 61 48" fill="none" stroke="url(#mSG)" stroke-width="2" filter="url(#mGlow)" opacity="0.9"/>
+        <path d="M 24 48 A 15 15 0 0 1 54 48" fill="none" stroke="url(#mSG)" stroke-width="1.2" opacity="0.6"/>
+        <circle cx="39" cy="48" r="3" fill="url(#mSG)" filter="url(#mGlow)" opacity="0.95"/>
+        <circle cx="39" cy="48" r="1.5" fill="#e8edf5"/>
+        <line x1="39" y1="44" x2="39" y2="24" stroke="url(#mSG)" stroke-width="1.2" stroke-linecap="round" opacity="0.7" filter="url(#mGlow)"/>
+        <line x1="39" y1="44" x2="28" y2="28" stroke="url(#mSG)" stroke-width="0.8" stroke-linecap="round" opacity="0.45"/>
+        <line x1="39" y1="44" x2="50" y2="28" stroke="url(#mSG)" stroke-width="0.8" stroke-linecap="round" opacity="0.45"/>
+      </svg>
+      <div>
+        <div class="topbar-title">Nascent Cause</div>
+        <div class="topbar-sub">Tell us your vision</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:.05em;">Progress</span>
+      <div style="width:70px;height:3px;background:rgba(255,255,255,0.09);border-radius:2px;overflow:hidden;">
+        <div class="progress-fill" id="convo-progress" style="width:5%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="messages-area" id="messages">
+    <!-- messages injected here -->
+  </div>
+  <div class="typing-wrap" id="typing" style="padding: 0 16px 10px;">
+    <div class="typing-av">C</div>
+    <div class="typing-dots">
+      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    </div>
+  </div>
+
+  <div class="input-row">
+    <textarea class="msg-input" id="userInput" placeholder="Type your answer..." rows="1"
+      onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMsg()">→</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 3 — BUILDING
+══════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════
+     PAGE: SIGN UP — appears after conversation
+     ══════════════════════════════════════════ -->
+<div class="page" id="pg-signup">
+  <div style="min-height:100vh;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
+
+    <!-- Logo mark -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78 78" width="52" height="52" style="margin-bottom:24px;">
+      <defs>
+        <linearGradient id="suSG" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#e8edf5;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#8fa3bf;stop-opacity:1" />
+        </linearGradient>
+        <filter id="suGlow">
+          <feGaussianBlur stdDeviation="1.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <circle cx="39" cy="48" r="22" fill="none" stroke="url(#suSG)" stroke-width="1" opacity="0.3"/>
+      <line x1="12" y1="48" x2="66" y2="48" stroke="url(#suSG)" stroke-width="1" opacity="0.5"/>
+      <path d="M 17 48 A 22 22 0 0 1 61 48" fill="none" stroke="url(#suSG)" stroke-width="2" filter="url(#suGlow)" opacity="0.9"/>
+      <path d="M 24 48 A 15 15 0 0 1 54 48" fill="none" stroke="url(#suSG)" stroke-width="1.2" opacity="0.6"/>
+      <circle cx="39" cy="48" r="3" fill="url(#suSG)" filter="url(#suGlow)" opacity="0.95"/>
+      <circle cx="39" cy="48" r="1.5" fill="#e8edf5"/>
+      <line x1="39" y1="44" x2="39" y2="24" stroke="url(#suSG)" stroke-width="1.2" stroke-linecap="round" opacity="0.7" filter="url(#suGlow)"/>
+      <line x1="39" y1="44" x2="28" y2="28" stroke="url(#suSG)" stroke-width="0.8" stroke-linecap="round" opacity="0.45"/>
+      <line x1="39" y1="44" x2="50" y2="28" stroke="url(#suSG)" stroke-width="0.8" stroke-linecap="round" opacity="0.45"/>
+    </svg>
+
+    <h1 style="font-family:var(--font-serif);font-size:26px;color:var(--silver);text-align:center;margin-bottom:8px;letter-spacing:.02em;">Save your vision</h1>
+    <p id="signupSubtext" style="font-size:14px;color:var(--silver-muted);text-align:center;margin-bottom:32px;max-width:300px;line-height:1.6;">Create a free account to save your progress and pick up where you left off anytime.</p>
+
+    <!-- Signup form -->
+    <div style="width:100%;max-width:360px;">
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--silver-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Email</label>
+        <input type="email" id="signupEmail" placeholder="your@email.com"
+          style="width:100%;padding:13px 16px;background:var(--navy-card);border:1px solid var(--navy-light);border-radius:10px;font-size:15px;color:var(--silver);font-family:var(--font-sans);outline:none;transition:border .2s;"
+          onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='var(--navy-light)'">
+      </div>
+      <div style="margin-bottom:24px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--silver-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Password</label>
+        <input type="password" id="signupPassword" placeholder="At least 8 characters"
+          style="width:100%;padding:13px 16px;background:var(--navy-card);border:1px solid var(--navy-light);border-radius:10px;font-size:15px;color:var(--silver);font-family:var(--font-sans);outline:none;transition:border .2s;"
+          onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='var(--navy-light)'">
+      </div>
+
+      <div id="signupError" style="display:none;background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.3);border-radius:8px;padding:11px 14px;font-size:13px;color:#e88;margin-bottom:16px;"></div>
+
+      <button onclick="handleSignup()" id="signupBtn"
+        style="width:100%;padding:15px;background:var(--teal);color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:var(--font-sans);cursor:pointer;transition:all .2s;letter-spacing:.02em;">
+        Create Account & Save Progress
+      </button>
+
+      <div style="text-align:center;margin-top:20px;">
+        <span style="font-size:13px;color:var(--silver-muted);">Already have an account? </span>
+        <button onclick="showPage('pg-login')" style="background:none;border:none;color:var(--teal-light);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-sans);">Sign in</button>
+      </div>
+
+      <div style="text-align:center;margin-top:12px;">
+        <button onclick="continueWithoutAccount()" style="background:none;border:none;color:var(--silver-muted);font-size:12px;cursor:pointer;font-family:var(--font-sans);text-decoration:underline;opacity:0.7;">Continue without saving</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE: LOGIN — for returning users
+     ══════════════════════════════════════════ -->
+<div class="page" id="pg-login">
+  <div style="min-height:100vh;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
+
+    <!-- Logo mark -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78 78" width="52" height="52" style="margin-bottom:24px;">
+      <defs>
+        <linearGradient id="liSG" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#e8edf5;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#8fa3bf;stop-opacity:1" />
+        </linearGradient>
+        <filter id="liGlow">
+          <feGaussianBlur stdDeviation="1.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <circle cx="39" cy="48" r="22" fill="none" stroke="url(#liSG)" stroke-width="1" opacity="0.3"/>
+      <line x1="12" y1="48" x2="66" y2="48" stroke="url(#liSG)" stroke-width="1" opacity="0.5"/>
+      <path d="M 17 48 A 22 22 0 0 1 61 48" fill="none" stroke="url(#liSG)" stroke-width="2" filter="url(#liGlow)" opacity="0.9"/>
+      <path d="M 24 48 A 15 15 0 0 1 54 48" fill="none" stroke="url(#liSG)" stroke-width="1.2" opacity="0.6"/>
+      <circle cx="39" cy="48" r="3" fill="url(#liSG)" filter="url(#liGlow)" opacity="0.95"/>
+      <circle cx="39" cy="48" r="1.5" fill="#e8edf5"/>
+      <line x1="39" y1="44" x2="39" y2="24" stroke="url(#liSG)" stroke-width="1.2" stroke-linecap="round" opacity="0.7" filter="url(#liGlow)"/>
+      <line x1="39" y1="44" x2="28" y2="28" stroke="url(#liSG)" stroke-width="0.8" stroke-linecap="round" opacity="0.45"/>
+      <line x1="39" y1="44" x2="50" y2="28" stroke="url(#liSG)" stroke-width="0.8" stroke-linecap="round" opacity="0.45"/>
+    </svg>
+
+    <h1 style="font-family:var(--font-serif);font-size:26px;color:var(--silver);text-align:center;margin-bottom:8px;">Welcome back</h1>
+    <p style="font-size:14px;color:var(--silver-muted);text-align:center;margin-bottom:32px;max-width:300px;line-height:1.6;">Sign in to continue building your nonprofit.</p>
+
+    <div style="width:100%;max-width:360px;">
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--silver-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Email</label>
+        <input type="email" id="loginEmail" placeholder="your@email.com"
+          style="width:100%;padding:13px 16px;background:var(--navy-card);border:1px solid var(--navy-light);border-radius:10px;font-size:15px;color:var(--silver);font-family:var(--font-sans);outline:none;transition:border .2s;"
+          onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='var(--navy-light)'">
+      </div>
+      <div style="margin-bottom:24px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--silver-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Password</label>
+        <input type="password" id="loginPassword" placeholder="Your password"
+          style="width:100%;padding:13px 16px;background:var(--navy-card);border:1px solid var(--navy-light);border-radius:10px;font-size:15px;color:var(--silver);font-family:var(--font-sans);outline:none;transition:border .2s;"
+          onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='var(--navy-light)'"
+          onkeydown="if(event.key==='Enter') handleLogin()">
+      </div>
+
+      <div id="loginError" style="display:none;background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.3);border-radius:8px;padding:11px 14px;font-size:13px;color:#e88;margin-bottom:16px;"></div>
+
+      <button onclick="handleLogin()" id="loginBtn"
+        style="width:100%;padding:15px;background:var(--teal);color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:var(--font-sans);cursor:pointer;transition:all .2s;">
+        Sign In
+      </button>
+
+      <div style="text-align:center;margin-top:20px;">
+        <span style="font-size:13px;color:var(--silver-muted);">New to Nascent Cause? </span>
+        <button onclick="showPage('pg-landing')" style="background:none;border:none;color:var(--teal-light);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-sans);">Get started</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="pg-building">
+  <div class="build-ring"></div>
+  <div class="build-title">Saving your vision</div>
+  <div class="build-sub">We're organizing everything you shared into your personal nonprofit profile.</div>
+  <div class="build-steps">
+    <div class="build-step" id="bs1"><div class="build-step-dot"></div>Analyzing your conversation...</div>
+    <div class="build-step" id="bs2"><div class="build-step-dot"></div>Drafting your mission statement...</div>
+    <div class="build-step" id="bs3"><div class="build-step-dot"></div>Organizing your profile...</div>
+    <div class="build-step" id="bs4"><div class="build-step-dot"></div>Mapping your state requirements...</div>
+    <div class="build-step" id="bs5"><div class="build-step-dot"></div>Setting up your compliance roadmap...</div>
+    <div class="build-step" id="bs6"><div class="build-step-dot"></div>Ready to create your account...</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 4 — DASHBOARD
+══════════════════════════════════════ -->
+<div class="page" id="pg-dash">
+  <div class="dash-header" style="position:relative;">
+    <button onclick="handleLogout()" style="position:absolute;top:16px;right:20px;background:none;border:none;color:rgba(255,255,255,0.3);font-size:12px;cursor:pointer;font-family:var(--font-sans);padding:6px 10px;">Sign out</button>
+    <div class="dash-org-label">Your Organization</div>
+    <div class="dash-org-name" id="dash-name">—</div>
+    <div class="dash-org-mission" id="dash-mission">—</div>
+    <div class="dash-chips" id="dash-chips"></div>
+  </div>
+
+  <div class="scroll-body">
+
+    <!-- JOURNEY MAP -->
+    <div class="section-label">Your Journey</div>
+    <div class="journey-card" id="journey-card">
+      <div class="journey-header">
+        <div class="journey-header-title">Formation Progress</div>
+        <div class="journey-pct" id="journey-pct">0%</div>
+      </div>
+      <div class="journey-stages" id="journey-stages">
+        <!-- injected -->
+      </div>
+    </div>
+
+    <!-- ACTIVE MODULE -->
+    <div class="section-label" id="modules-label">Next Steps</div>
+    <div id="modules-list">
+      <!-- injected by renderModules() -->
+    </div>
+
+    <!-- COMPLIANCE PULSE -->
+    <div class="section-label">Compliance Pulse</div>
+    <div class="compliance-card" id="compliance-card">
+      <!-- injected -->
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div class="section-label">Your Documents</div>
+    <div id="docs-list">
+      <!-- injected -->
+    </div>
+
+    <!-- FOUNDER CLOSE -->
+    <div class="founder-note" style="margin-top:8px;">
+      <div class="founder-note-icon">⭐</div>
+      <div class="founder-note-body">
+        <div class="founder-note-label">From the Founder</div>
+        <div class="founder-note-text">"Every document in this dashboard is a real step toward making your vision official. The paperwork is not the mission — but it protects everything you're building. Keep going."</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 5 — 1023-EZ WALKTHROUGH
+══════════════════════════════════════ -->
+<div class="page" id="pg-1023">
+  <!-- Intro screen -->
+  <div id="ez-intro" style="display:flex;flex-direction:column;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+    <div class="topbar">
+      <button class="topbar-back" onclick="showPage('pg-dash')">←</button>
+      <div class="topbar-brand">
+        <div><div class="topbar-title">1023-EZ Walkthrough</div><div class="topbar-sub">Federal Application</div></div>
+      </div>
+    </div>
+    <div style="padding:24px 16px;padding-bottom:calc(24px + var(--safe-bot));">
+
+      <div style="display:inline-flex;align-items:center;gap:7px;background:var(--navy);color:var(--gold-light);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:7px 14px;border-radius:20px;margin-bottom:20px;">📋 Federal Application</div>
+
+      <h2 style="font-family:var(--font-serif);font-size:28px;color:var(--silver);line-height:1.15;margin-bottom:14px;">Let's get your<br><em style="color:var(--silver-mid);font-style:italic;">501(c)(3) status.</em></h2>
+
+      <p style="font-size:15px;color:var(--text-mid);line-height:1.75;margin-bottom:24px;font-weight:300;">The Form 1023-EZ lives on Pay.gov and takes most people one to two hours. We'll walk through every question in plain English so you're just copying answers when you open the form.</p>
+
+      <div class="founder-note" style="margin-bottom:24px;">
+        <div class="founder-note-icon">⭐</div>
+        <div class="founder-note-body">
+          <div class="founder-note-label">From the Founder</div>
+          <div class="founder-note-text">"I did this on a Saturday morning. One cup of coffee, no lawyer, no consultant. The form is not as scary as it looks — it just needs someone to translate it into English first. That's exactly what this does."</div>
+        </div>
+      </div>
+
+      <!-- Checklist -->
+      <div class="card" style="margin-bottom:20px;">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--navy);letter-spacing:.04em;text-transform:uppercase;">What you'll need</div>
+        <div id="ez-needs" style="padding:4px 16px 12px;">
+          <!-- injected -->
+        </div>
+      </div>
+
+      <div class="callout warn" style="margin-bottom:24px;">
+        <div class="callout-icon">💳</div>
+        <div><strong>Filing fee: $275</strong> — paid at the end on Pay.gov. Non-refundable. Complete this walkthrough fully before submitting.</div>
+      </div>
+
+      <button class="btn btn-gold btn-full" onclick="startEZ()">Begin Walkthrough →</button>
+
+    </div>
+  </div>
+
+  <!-- Question screen -->
+  <div id="ez-questions" style="display:none;flex-direction:column;flex:1;">
+    <div class="topbar">
+      <button class="topbar-back" onclick="ezBack()">←</button>
+      <div class="topbar-brand">
+        <div><div class="topbar-title" id="ez-topbar-title">1023-EZ</div><div class="topbar-sub" id="ez-topbar-sub">Part I</div></div>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="ez-progress" style="width:0%"></div></div>
+    <div class="q-part-banner" id="ez-part-banner">
+      <div class="q-part-num" id="ez-part-num">I</div>
+      <div><div class="q-part-label" id="ez-part-label">Part I</div><div class="q-part-title" id="ez-part-title">Identification</div></div>
+    </div>
+    <div class="q-scroll-body" id="ez-q-body"><!-- injected --></div>
+    <div class="bottom-nav">
+      <button class="btn btn-ghost" id="ez-prev" onclick="ezPrev()" style="min-width:80px;">← Back</button>
+      <button class="btn btn-navy" id="ez-next" onclick="ezNext()" style="flex:1;">Next →</button>
+    </div>
+  </div>
+
+  <!-- Answer sheet -->
+  <div id="ez-sheet" style="display:none;flex-direction:column;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+    <div class="answer-sheet-header">
+      <div class="answer-check-ring">✓</div>
+      <div class="answer-sheet-title">Your Answer Sheet</div>
+      <div class="answer-sheet-sub">Keep this open while you fill out the form on Pay.gov.</div>
+    </div>
+    <div style="padding:20px 16px;padding-bottom:calc(20px + var(--safe-bot));">
+      <div class="how-to-use">
+        <div class="how-to-use-title">🖥 How to use this</div>
+        <div class="how-step"><div class="how-step-n">1</div>Open Pay.gov on a computer and search for "Form 1023-EZ"</div>
+        <div class="how-step"><div class="how-step-n">2</div>Keep this answer sheet open on your phone</div>
+        <div class="how-step"><div class="how-step-n">3</div>Copy each answer exactly into the form</div>
+        <div class="how-step"><div class="how-step-n">4</div>When you reach payment, your card and $275 filing fee are ready</div>
+      </div>
+      <div id="ez-sheet-content"><!-- injected --></div>
+      <div class="wait-box">
+        <div class="wait-icon">⏳</div>
+        <div class="wait-text"><strong>After you submit:</strong> Most 1023-EZ applications are approved in 2–4 weeks by email. Some are approved in days. Save that letter in multiple places the moment it arrives — you will need it for everything.</div>
+      </div>
+      <div class="founder-note" style="margin-top:14px;">
+        <div class="founder-note-icon">⭐</div>
+        <div class="founder-note-body">
+          <div class="founder-note-label">From the Founder</div>
+          <div class="founder-note-text">"When my approval came through I couldn't believe how fast it happened. Share it with your board the moment you see it. That moment belongs to all of you."</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px;">
+        <button class="btn btn-gold btn-full" id="ez-copy-btn" onclick="copySheet()">📋 Copy All Answers</button>
+        <button class="btn btn-navy btn-full" onclick="window.print()">🖨 Print Answer Sheet</button>
+        <button class="btn btn-ghost btn-full" onclick="showPage('pg-dash')">← Back to Dashboard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// APP STATE
+// ══════════════════════════════════════════
+const APP = {
+  convoHistory: [],
+  exchangeCount: 0,
+  MAX_EXCHANGES: 9,
+  isWaiting: false,
+  orgData: {},
+  docs: [],
+  ezAnswers: {},
+  ezCurrentQ: 0,
+};
+
+// ══════════════════════════════════════════
+// MODULE REGISTRY
+// This is the expandable content system.
+// To add a new module, add an entry here.
+// ══════════════════════════════════════════
+const MODULES = [
+  {
+    id: 'founding-docs',
+    title: 'Your Founding Documents',
+    desc: 'Bylaws, conflict of interest policy, and board meeting minutes — ready to review and sign.',
+    icon: '📋',
+    iconStyle: 'navy',
+    stage: 0,
+    getStatus: (org) => org.docsGenerated ? 'done' : 'active',
+    getAction: (org) => org.docsGenerated ? 'Review Documents' : 'Generate Documents',
+    onTap: () => scrollToSection('docs-list'),
+  },
+  {
+    id: 'state-filing',
+    title: 'State Incorporation',
+    desc: 'File your Articles of Incorporation with your home state or territory. This legally creates your organization.',
+    icon: '🏛️',
+    iconStyle: 'gold',
+    stage: 0,
+    getStatus: () => 'next',
+    getAction: () => 'View State Guide →',
+    onTap: () => alert('State-specific guides are coming soon for all 50 states and US territories — including Puerto Rico. Stay tuned.'),
+    comingSoon: true,
+  },
+  {
+    id: 'ein',
+    title: 'Get Your EIN',
+    desc: 'Free, takes 15 minutes online. Get this after your state incorporation is filed.',
+    icon: '🔢',
+    iconStyle: 'gold',
+    stage: 0,
+    getStatus: (org) => org.ein && org.ein !== 'Not provided' ? 'done' : 'next',
+    getAction: (org) => org.ein && org.ein !== 'Not provided' ? 'EIN on file ✓' : 'Get Your EIN →',
+    onTap: () => window.open('https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online', '_blank'),
+    actionNote: 'Opens IRS.gov — completely free',
+  },
+  {
+    id: '1023ez',
+    title: 'Federal 1023-EZ Application',
+    desc: 'Walk through every question on the federal application with plain-English explanations at every step.',
+    icon: '🦅',
+    iconStyle: 'claude',
+    stage: 1,
+    getStatus: () => 'next',
+    getAction: () => 'Start Walkthrough →',
+    onTap: () => showPage('pg-1023'),
+  },
+  {
+    id: 'post-approval',
+    title: 'Post-Approval Setup',
+    desc: 'What to do the week your IRS letter arrives — Candid, Give Lively, donor setup, and more.',
+    icon: '🎉',
+    iconStyle: 'green',
+    stage: 2,
+    getStatus: () => 'coming',
+    getAction: () => 'Coming Soon',
+    onTap: () => {},
+    comingSoon: true,
+  },
+  {
+    id: 'free-tools',
+    title: 'Free Tools for Nonprofits',
+    desc: 'Microsoft 365, Canva, Google Workspace, Zoom, Slack — all free or deeply discounted for 501(c)(3) organizations.',
+    icon: '🛠️',
+    iconStyle: 'green',
+    stage: 2,
+    getStatus: () => 'coming',
+    getAction: () => 'Coming Soon',
+    onTap: () => {},
+    comingSoon: true,
+  },
+  {
+    id: 'multi-state',
+    title: 'Multi-State Expansion',
+    desc: 'Charitable solicitation registration guidance for every state you plan to raise money in.',
+    icon: '🗺️',
+    iconStyle: 'gold',
+    stage: 3,
+    getStatus: () => 'coming',
+    getAction: () => 'Coming Soon',
+    onTap: () => {},
+    comingSoon: true,
+  },
+];
+
+const STAGES = [
+  { name: 'Foundation', desc: 'Documents, EIN, and organizational setup' },
+  { name: 'State & Federal Filing', desc: 'Incorporation and 501(c)(3) application' },
+  { name: 'Operational Setup', desc: 'Donations, tools, and board governance' },
+  { name: 'Growth', desc: 'Multi-state registration and expansion' },
+];
+
+// ══════════════════════════════════════════
+// FOUNDER NOTES (appear during conversation)
+// ══════════════════════════════════════════
+const FOUNDER_NOTES = {
+  1: { icon: '⭐', text: 'When I started Roll Out PTSD I just knew veterans were struggling and existing resources weren\'t reaching them. I didn\'t have a plan — I had a reason. That\'s enough to start.' },
+  3: { icon: '📋', text: 'The bylaws scared me at first. I ended up finding another nonprofit\'s bylaws online and adapting them. You don\'t write them from scratch — you make them yours.' },
+  5: { icon: '🏛️', text: 'Filing with the IRS felt like the biggest hurdle. But the 1023-EZ took me about an hour on a Saturday morning. Seriously — just an hour.' },
+  7: { icon: '💪', text: 'By the time you get your approval letter, it feels real in a way nothing else does. Keep it somewhere safe — you\'ll need it for everything.' },
+};
+
+// ══════════════════════════════════════════
+// PAGE NAVIGATION
+// ══════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+  // Init sub-screens when their page is shown
+  if (id === 'pg-1023') showPage_1023();
+  // Update signup subtext based on how they arrived
+  if (id === 'pg-signup') {
+    const sub = document.getElementById('signupSubtext');
+    if (sub) {
+      if (APP.orgData && APP.orgData.orgName) {
+        sub.textContent = 'Create a free account to save your progress and pick up where you left off anytime.';
+      } else {
+        sub.textContent = 'Create a free account to start building your nonprofit profile.';
+      }
+    }
+  }
+}
+
+function scrollToSection(id) {
+  showPage('pg-dash');
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }, 100);
+}
+
+// ══════════════════════════════════════════
+// CONVERSATION
+// ══════════════════════════════════════════
+function startJourney() {
+  showPage('pg-convo');
+  const opening = `Welcome. I'm genuinely glad you're here.\n\nStarting a nonprofit takes real courage — and it takes someone who cares deeply enough to make something real out of an idea. Let's build that together.\n\nBefore we touch any paperwork, I want to hear about you. Tell me: what's the cause you want to fight for, and what made you decide it was finally time to do something about it?`;
+  setTimeout(() => {
+    addClaudeMsg(opening);
+    // Opening message is display-only — not added to API history
+    // The API requires conversations to start with a user message
+  }, 450);
+}
+
+function addClaudeMsg(text, founderKey) {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg claude';
+  const note = founderKey && FOUNDER_NOTES[founderKey]
+    ? `<div class="msg-founder">
+        <div class="msg-founder-icon">${FOUNDER_NOTES[founderKey].icon}</div>
+        <div class="msg-founder-body">
+          <span class="msg-founder-label">From the Founder</span>
+          ${FOUNDER_NOTES[founderKey].text}
+        </div>
+       </div>` : '';
+  div.innerHTML = `
+    <div class="msg-av">C</div>
+    <div class="msg-wrap">
+      <div class="msg-name">Claude</div>
+      <div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div>
+      ${note}
+    </div>`;
+  container.appendChild(div);
+  scrollMsgs();
+}
+
+function addUserMsg(text) {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg user';
+  div.innerHTML = `
+    <div class="msg-av">Y</div>
+    <div class="msg-wrap">
+      <div class="msg-name">You</div>
+      <div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div>
+    </div>`;
+  container.appendChild(div);
+  // Blur input so it does not steal scroll position
+  const inp = document.getElementById('userInput');
+  if (inp) inp.blur();
+  scrollMsgs();
+}
+
+function scrollMsgs() {
+  // Small delay lets the DOM update before we scroll
+  setTimeout(() => {
+    // Method 1: scroll the messages container directly
+    const area = document.getElementById('messages').parentElement;
+    if (area) area.scrollTop = area.scrollHeight;
+
+    // Method 2: scroll the last message into view
+    const msgs = document.getElementById('messages');
+    const lastMsg = msgs ? msgs.lastElementChild : null;
+    if (lastMsg) lastMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+function showTyping()  { document.getElementById('typing').classList.add('active'); scrollMsgs(); }
+function hideTyping()  { document.getElementById('typing').classList.remove('active'); }
+
+function updateConvoProgress() {
+  const pct = Math.min((APP.exchangeCount / APP.MAX_EXCHANGES) * 100, 92);
+  document.getElementById('convo-progress').style.width = pct + '%';
+}
+
+async function sendMsg() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text || APP.isWaiting) return;
+
+  APP.isWaiting = true;
+  document.getElementById('sendBtn').disabled = true;
+  input.value = ''; input.style.height = 'auto';
+
+  addUserMsg(text);
+  APP.convoHistory.push({ role: 'user', content: text });
+  APP.exchangeCount++;
+  updateConvoProgress();
+  showTyping();
+
+  try {
+    if (APP.exchangeCount >= APP.MAX_EXCHANGES) {
+      await wrapUpConvo();
+    } else {
+      await continueConvo();
+    }
+  } catch (err) {
+    console.error('API Error:', err.message || err);
+    hideTyping();
+    addClaudeMsg("I had a little trouble connecting. Give me a moment and try again — sometimes a retry is all it takes.");
+    APP.isWaiting = false;
+    document.getElementById('sendBtn').disabled = false;
+  }
+}
+
+async function continueConvo() {
+  const remaining = APP.MAX_EXCHANGES - APP.exchangeCount;
+
+  const system = `You are a warm nonprofit advisor helping someone start a 501(c)(3). Ask ONE question at a time. Be warm and human — acknowledge what they share before moving on. Keep responses to 3-4 sentences max.
+
+Gather these 6 things across the conversation:
+1. Why this org needs to exist (their personal story)
+2. What it will actually DO (specific programs or activities)
+3. Their home state or US territory
+4. Organization name (suggest options if they don't have one)
+5. Three board members: President, Secretary, Treasurer (must be unrelated people)
+6. EIN status — note that the correct order is: state incorporation FIRST, then EIN, then federal 1023-EZ application
+
+You have ${remaining} exchanges left. Stay focused on what's still missing.`;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25000);
+
+  const res = await fetch('/.netlify/functions/claude', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 300,
+      system,
+      messages: APP.convoHistory
+    }),
+    signal: controller.signal
+  });
+
+  clearTimeout(timeout);
+
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error(errBody?.error?.message || 'HTTP ' + res.status);
+  }
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message || 'API error');
+  const reply = data.content?.[0]?.text?.trim() || "Tell me more about your vision.";
+  hideTyping();
+
+  const noteKey = FOUNDER_NOTES[APP.exchangeCount] ? APP.exchangeCount : null;
+  addClaudeMsg(reply, noteKey);
+  APP.convoHistory.push({ role: 'assistant', content: reply });
+  APP.isWaiting = false;
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('userInput').focus();
+}
+
+async function wrapUpConvo() {
+  const closing = `This is everything I need to get started. What you're building genuinely matters.\n\nLet me save your vision — create a free account and I'll set up your personal dashboard so you can pick up where you left off anytime.`;
+  hideTyping();
+  addClaudeMsg(closing, 7);
+
+  APP.isWaiting = false;
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('userInput').disabled = true;
+  document.getElementById('userInput').placeholder = 'Conversation complete';
+
+  // Extract org data from conversation, then show account creation
+  setTimeout(async () => {
+    showPage('pg-building');
+    await animateBuild();
+    await extractOrgData();
+    // Instead of going to dashboard, show account creation
+    showPage('pg-signup');
+  }, 1800);
+}
+
+async function animateBuild() {
+  const steps = ['bs1','bs2','bs3','bs4','bs5','bs6'];
+  for (let i = 0; i < steps.length; i++) {
+    if (i > 0) document.getElementById(steps[i-1]).classList.add('done');
+    document.getElementById(steps[i]).classList.add('lit');
+    await sleep(800);
+  }
+  await sleep(500);
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ══════════════════════════════════════════
+// DATA EXTRACTION
+// ══════════════════════════════════════════
+async function extractOrgData() {
+  const transcript = APP.convoHistory.map(m => m.role.toUpperCase() + ':\n' + m.content).join('\n\n');
+
+  const prompt = `You are extracting structured data from a nonprofit founding conversation to generate legal documents. Be generous in your interpretation — infer reasonable values from context when something wasn't stated explicitly. Never leave a field blank if you can make a reasonable inference.
+
+Return ONLY a valid JSON object with these exact keys. No text outside the JSON.
+
+EXTRACTION RULES:
+- orgName: Use what they said. If they mentioned a name, use it with proper capitalization + "Inc." if not already present. If no name was discussed, create a fitting name from their cause description.
+- mission: Write a polished 2-4 sentence mission statement that sounds like it was professionally drafted. Base it on everything they shared.
+- homeState: Extract the state/territory they mentioned. If ambiguous, use the most specific location mentioned.
+- orgType: 3-5 word description of their type (e.g., "Veterans Mental Health Support", "Youth Education and Mentoring").
+- founderName: Their name if mentioned, otherwise "Not provided".
+- founderStory: 2-3 sentence summary of their personal motivation. Make it compelling based on what they shared.
+- programs: A numbered list of 2-4 concrete programs. If they were vague, extrapolate 2 reasonable programs from their mission. Format: "1. Program Name — description. 2. ..."
+- board1: President's full name if mentioned, otherwise "[President Name — to be completed]"
+- board2: Secretary's full name if mentioned, otherwise "[Secretary Name — to be completed]"  
+- board3: Treasurer's full name if mentioned, otherwise "[Treasurer Name — to be completed]"
+- boardNote: "complete" if all 3 board members were named, otherwise "needs_completion"
+- ein: EIN number if provided (format XX-XXXXXXX), "in_progress" if they said they are getting one, otherwise "not_yet"
+- website: URL if mentioned, otherwise "Not provided"
+- nextSteps: 3-4 PERSONALIZED next steps based specifically on what they've done and haven't done yet. Be specific to their state and situation.
+- stateNote: 1 specific, accurate sentence about what filing Articles of Incorporation looks like in their specific state or territory.
+- missingItems: Array of strings listing anything critical that wasn't collected, e.g. ["board members not named", "state not mentioned"]
+
+Conversation to analyze:
+${transcript}`;
+
+  try {
+    const extractController = new AbortController();
+    const extractTimeout = setTimeout(() => extractController.abort(), 30000);
+
+    const res = await fetch('/.netlify/functions/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1200,
+        messages: [{ role: 'user', content: prompt }]
+      }),
+      signal: extractController.signal
+    });
+
+    clearTimeout(extractTimeout);
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody?.error?.message || 'HTTP ' + res.status);
+    }
+    const data = await res.json();
+    let raw = data.content?.[0]?.text?.trim() || '{}';
+    raw = raw.replace(/```json|```/g, '').trim();
+    APP.orgData = JSON.parse(raw);
+    APP.orgData.docsGenerated = true;
+
+    // Flag any board members that need completion
+    APP.orgData.boardIncomplete = APP.orgData.boardNote === 'needs_completion';
+    APP.orgData.einPending = APP.orgData.ein === 'not_yet' || APP.orgData.ein === 'in_progress';
+
+  } catch (e) {
+    console.error('Extraction error:', e);
+    APP.orgData = {
+      orgName: 'Your Organization',
+      mission: 'To be completed based on your vision.',
+      homeState: '',
+      orgType: 'Nonprofit Organization',
+      founderName: 'Not provided',
+      founderStory: '',
+      programs: '',
+      board1: '',
+      board2: '',
+      board3: '',
+      boardNote: 'needs_completion',
+      boardIncomplete: true,
+      ein: 'not_yet',
+      einPending: true,
+      website: 'Not provided',
+      nextSteps: '',
+      stateNote: '',
+      missingItems: [],
+      docsGenerated: false
+    };
+  }
+  // Documents are NOT generated here — they come after the detailed checklist
+}
+
+// ══════════════════════════════════════════
+// DOCUMENT GENERATION
+// ══════════════════════════════════════════
+function buildDocs() {
+  const d = APP.orgData;
+  const today = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  const dissolution = `Upon the dissolution of this organization, assets shall be distributed for one or more exempt purposes within the meaning of section 501(c)(3) of the Internal Revenue Code, or shall be distributed to the federal government, or to a state or local government, for a public purpose.`;
+
+  APP.docs = [
+    {
+      icon: '📋', title: 'Bylaws',
+      desc: 'Your governing document — required for IRS application',
+      content: `BYLAWS OF ${(d.orgName||'YOUR ORGANIZATION').toUpperCase()}
+A Nonprofit Corporation — ${d.homeState||'[State]'}
+Adopted: ${today}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ARTICLE I — NAME AND PURPOSE
+
+Section 1.1 — Name
+The name of this organization is ${d.orgName||'[Organization Name]'}.
+
+Section 1.2 — Mission
+${d.mission||'[Mission Statement]'}
+
+Section 1.3 — Programs
+${d.programs||'[Programs to be defined]'}
+
+Section 1.4 — Nonprofit Status
+This organization is organized exclusively for charitable purposes under Section 501(c)(3) of the Internal Revenue Code. No part of net earnings shall benefit any private individual.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ARTICLE II — BOARD OF DIRECTORS
+
+Section 2.1 — Governing Authority
+The Board of Directors manages all affairs of the Organization.
+
+Section 2.2 — Composition
+The Board shall consist of not fewer than three (3) unrelated members.
+
+Section 2.3 — Current Officers
+  President:  ${d.board1||'[President]'}
+  Secretary:  ${d.board2||'[Secretary]'}
+  Treasurer:  ${d.board3||'[Treasurer]'}
+
+Section 2.4 — Terms
+Board members serve two-year terms, re-electable without limit.
+
+Section 2.5 — Meetings
+The Board meets at minimum quarterly. Special meetings require 48 hours notice.
+
+Section 2.6 — Quorum
+A majority of Board members constitutes a quorum.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ARTICLE III — OFFICERS
+
+President (${d.board1||'[Name]'}): Presides at Board meetings, oversees activities, serves as primary spokesperson.
+Secretary (${d.board2||'[Name]'}): Records minutes, handles correspondence, maintains records.
+Treasurer (${d.board3||'[Name]'}): Maintains funds, keeps financial records, ensures timely IRS filings.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ARTICLE IV — FISCAL MATTERS
+
+Fiscal year ends December 31 each year. All expenditures require officer authorization. IRS Form 990/990-N filed annually on time without exception.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ARTICLE V — DISSOLUTION
+
+${dissolution}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ARTICLE VI — AMENDMENTS
+
+Bylaws may be amended by two-thirds Board vote with seven (7) days advance notice.
+
+CERTIFICATION
+
+President: _________________________ Date: _________
+${d.board1||'[President Name]'}
+
+Secretary: _________________________ Date: _________
+${d.board2||'[Secretary Name]'}`
+    },
+    {
+      icon: '⚖️', title: 'Conflict of Interest Policy',
+      desc: 'Required by IRS — all board members sign annually',
+      content: `CONFLICT OF INTEREST POLICY
+${(d.orgName||'YOUR ORGANIZATION').toUpperCase()}
+Adopted: ${today}
+
+PURPOSE
+This policy protects ${d.orgName||'this organization'} by ensuring decisions are made in the organization's best interest — not for the personal benefit of officers or directors.
+
+DEFINITION
+A Conflict of Interest exists when a director or officer may personally benefit financially from a decision they could make on behalf of this organization.
+
+PROCEDURE
+1. Any officer or director with a financial interest in a proposed transaction must disclose all material facts to the Board before any vote.
+2. The interested person shall leave the meeting room during deliberation and voting.
+3. The Board votes by majority on whether the transaction serves the Organization's best interest.
+4. The Board minutes shall record the disclosure, recusal, vote, and outcome.
+
+ANNUAL SIGNATURES
+
+___________________________ Date: ___________
+${d.board1||'[President]'}, President
+
+___________________________ Date: ___________
+${d.board2||'[Secretary]'}, Secretary
+
+___________________________ Date: ___________
+${d.board3||'[Treasurer]'}, Treasurer`
+    },
+    {
+      icon: '📝', title: 'Board Meeting Minutes Template',
+      desc: 'Use at every board meeting — document everything',
+      content: `BOARD MEETING MINUTES
+${(d.orgName||'YOUR ORGANIZATION').toUpperCase()}
+
+Date:      [ DATE ]
+Time:      [ TIME ]
+Location:  [ LOCATION ]
+Presiding: ${d.board1||'[President]'}
+
+ATTENDANCE
+  ☐ ${d.board1||'[President]'} — President
+  ☐ ${d.board2||'[Secretary]'} — Secretary
+  ☐ ${d.board3||'[Treasurer]'} — Treasurer
+  ☐ Guests: _____________________
+Quorum: ☐ Yes  ☐ No
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. CALL TO ORDER — [TIME]
+2. PREVIOUS MINUTES — ☐ Approved  ☐ Corrected  ☐ Tabled
+   Motion: _____________ Second: _____________
+3. FINANCIAL REPORT
+   Balance: $___________  Income: $___________  Expenses: $___________
+4. OLD BUSINESS: ___________________________________
+5. NEW BUSINESS
+   Motion: ___________________________
+   Made by: _________ Second: _________
+   Vote: ☐ Approved  ☐ Denied  ☐ Tabled
+6. ANNOUNCEMENTS: _________________________________
+7. NEXT MEETING: __________________________________
+8. ADJOURNMENT — [TIME]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Submitted: ___________________________ Date: _______
+${d.board2||'[Secretary]'}, Secretary
+
+Approved:  ___________________________ Date: _______
+${d.board1||'[President]'}, President`
+    },
+    {
+      icon: '✅', title: 'Compliance Checklist',
+      desc: 'Your personalized roadmap from start to operating',
+      content: `COMPLIANCE CHECKLIST
+${(d.orgName||'YOUR ORGANIZATION').toUpperCase()}
+Generated: ${today}  |  EIN: ${d.ein !== 'Not provided' ? d.ein : '[Obtain free at IRS.gov]'}
+State: ${d.homeState||'[Your State]'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 1 — FOUNDATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ☐ Mission statement finalized
+  ☐ Name verified available in ${d.homeState||'your state'}
+  ☐ Board formed — 3+ unrelated members
+      • ${d.board1||'[President]'} — President
+      • ${d.board2||'[Secretary]'} — Secretary
+      • ${d.board3||'[Treasurer]'} — Treasurer
+  ☐ Bylaws drafted and adopted by Board
+  ☐ Conflict of Interest Policy signed by all board members
+  ☐ First Board meeting held + minutes recorded
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 2 — STATE INCORPORATION (${d.homeState||'YOUR STATE'})
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ☐ Articles of Incorporation filed with ${d.homeState||'your state'}
+  ☐ State confirmation / certificate received
+  Note: ${d.stateNote||'Research your state\'s specific requirements.'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 3 — EIN & BANKING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ☐ EIN obtained from IRS.gov — do this AFTER state filing (free, 15 min)
+  ☐ Bank account opened using EIN and state confirmation
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 3 — FEDERAL 501(c)(3)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ☐ 1023-EZ eligibility confirmed (under $50k/yr)
+  ☐ Pay.gov account created
+  ☐ Form 1023-EZ completed + submitted
+  ☐ Filing fee paid ($275)
+  ☐ IRS approval letter received + saved
+  ☐ Listed on IRS Tax Exempt Search
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 4 — CREDIBILITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ☐ Candid (GuideStar) profile completed
+  ☐ Give Lively account set up
+  ☐ Donation page live and tested
+  ☐ Website: ${d.website !== 'Not provided' ? d.website : '[To be set up]'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ANNUAL COMPLIANCE — EVERY YEAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ☐ IRS Form 990/990-N filed on time
+  ☐ Board meetings held + documented
+  ☐ State renewals completed
+  ☐ Conflict of Interest Policy re-signed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+YOUR PERSONALIZED NEXT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${d.nextSteps||'Begin state registration, then file your 1023-EZ.'}
+
+Generated by the Nascent Cause`
+    }
+  ];
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD RENDERING
+// ══════════════════════════════════════════
+function buildDashboard() {
+  const d = APP.orgData;
+
+  // Header
+  document.getElementById('dash-name').textContent = d.orgName || 'Your Organization';
+  document.getElementById('dash-mission').textContent = d.mission || '';
+
+  const chips = document.getElementById('dash-chips');
+  chips.innerHTML = '';
+  [d.homeState, d.orgType, d.ein !== 'Not provided' ? 'EIN: ' + d.ein : null]
+    .filter(Boolean)
+    .forEach(label => {
+      const c = document.createElement('div');
+      c.className = 'dash-chip' + (label.startsWith('EIN') ? ' gold' : '');
+      c.textContent = label;
+      chips.appendChild(c);
+    });
+
+  renderJourney();
+  renderModules();
+  renderCompliance();
+  renderDocs();
+}
+
+function renderJourney() {
+  const stages = document.getElementById('journey-stages');
+  stages.innerHTML = '';
+
+  const currentStage = 0; // Foundation — will be dynamic in future
+  let completedCount = 0;
+
+  STAGES.forEach((stage, i) => {
+    const status = i < currentStage ? 'done' : i === currentStage ? 'active' : 'locked';
+    if (status === 'done') completedCount++;
+
+    const row = document.createElement('div');
+    row.className = 'journey-stage';
+    row.innerHTML = `
+      <div class="stage-indicator ${status}">${status === 'done' ? '✓' : i + 1}</div>
+      <div class="stage-body">
+        <div class="stage-name">${stage.name}</div>
+        <div class="stage-desc">${stage.desc}</div>
+      </div>
+      <div class="stage-chevron">›</div>`;
+    stages.appendChild(row);
+  });
+
+  const pct = Math.round((completedCount / STAGES.length) * 100);
+  document.getElementById('journey-pct').textContent = pct + '%';
+}
+
+function renderModules() {
+  const list = document.getElementById('modules-list');
+  list.innerHTML = '';
+
+  MODULES.forEach(mod => {
+    const status = mod.getStatus(APP.orgData);
+    const action = mod.getAction(APP.orgData);
+
+    const card = document.createElement('div');
+    card.className = 'module-card';
+
+    const statusLabels = {
+      done: 'Complete', active: 'Active', next: 'Up Next', coming: 'Coming Soon'
+    };
+
+    card.innerHTML = `
+      <div class="module-card-top">
+        <div class="module-icon ${mod.iconStyle}">${mod.icon}</div>
+        <div class="module-info">
+          <div class="module-title">${mod.title}</div>
+          <div class="module-desc">${mod.desc}</div>
+        </div>
+        <div class="module-status ${status}">${statusLabels[status]}</div>
+      </div>
+      <div class="module-action">
+        <div class="module-action-text">${mod.actionNote || ''}</div>
+        <button class="btn ${status === 'coming' ? 'btn-ghost' : 'btn-navy'} module-action-btn"
+          ${status === 'coming' ? 'disabled' : ''}
+          onclick="moduleAction('${mod.id}')">
+          ${action}
+        </button>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+function moduleAction(id) {
+  const mod = MODULES.find(m => m.id === id);
+  if (mod && mod.onTap) mod.onTap();
+}
+
+function renderCompliance() {
+  const d = APP.orgData;
+  const card = document.getElementById('compliance-card');
+  card.innerHTML = `<div class="compliance-title">Compliance Pulse</div>`;
+
+  // Determine EIN display
+  const hasRealEIN = d.ein && !['not_yet','in_progress','Not provided'].includes(d.ein);
+  const einInProgress = d.ein === 'in_progress';
+  const einDot = hasRealEIN ? 'ok' : einInProgress ? 'warn' : 'warn';
+  const einSub = hasRealEIN ? 'On file: ' + d.ein
+    : einInProgress ? 'In progress — follow up at IRS.gov to confirm'
+    : 'Needed before federal filing — free at IRS.gov (15 min)';
+
+  // Board status
+  const boardOk = !d.boardIncomplete;
+  const boardSub = boardOk
+    ? `${d.board1}, ${d.board2}, ${d.board3}`
+    : 'Some board member names still need to be filled in your documents';
+
+  const items = [
+    {
+      dot: d.docsGenerated ? 'ok' : 'pending',
+      label: 'Founding documents generated',
+      sub: d.docsGenerated ? 'Bylaws, conflict of interest policy, minutes template — ready to review' : 'Complete the founding conversation to generate'
+    },
+    {
+      dot: boardOk ? 'ok' : 'warn',
+      label: 'Board of directors',
+      sub: boardSub
+    },
+    {
+      dot: einDot,
+      label: 'EIN (Employer Identification Number)',
+      sub: einSub
+    },
+    {
+      dot: 'pending',
+      label: 'State incorporation',
+      sub: `Articles of Incorporation — not yet filed in ${d.homeState || 'your state'}`
+    },
+    {
+      dot: 'pending',
+      label: 'Federal 501(c)(3) application',
+      sub: '1023-EZ on Pay.gov — not yet submitted'
+    },
+    {
+      dot: 'pending',
+      label: 'Annual 990-N filing',
+      sub: 'Due May 15 each year — will activate after your first fiscal year ends'
+    },
+  ];
+
+  items.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'compliance-item';
+    el.innerHTML = `
+      <div class="compliance-dot ${item.dot}"></div>
+      <div>
+        <div class="compliance-item-label">${item.label}</div>
+        <div class="compliance-item-sub">${item.sub}</div>
+      </div>`;
+    card.appendChild(el);
+  });
+
+  // Show missing items alert if any
+  if (d.missingItems && d.missingItems.length > 0) {
+    const alert = document.createElement('div');
+    alert.style.cssText = 'margin-top:12px;background:rgba(180,83,9,0.15);border:1px solid rgba(180,83,9,0.3);border-radius:8px;padding:11px 13px;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.6;';
+    alert.innerHTML = `<strong style="color:var(--gold-light);">A few things to update in your documents:</strong><br>${d.missingItems.join(' · ')}`;
+    card.appendChild(alert);
+  }
+}
+
+function renderDocs() {
+  const list = document.getElementById('docs-list');
+  list.innerHTML = '';
+
+  APP.docs.forEach((doc, idx) => {
+    const row = document.createElement('div');
+    row.className = 'doc-row';
+    row.innerHTML = `
+      <div class="doc-row-top" onclick="toggleDoc(${idx}, this)">
+        <div class="doc-row-icon">${doc.icon}</div>
+        <div class="doc-row-name">${doc.title}</div>
+        <div class="doc-row-chevron">›</div>
+      </div>
+      <div class="doc-row-body">
+        <div class="doc-row-text">${doc.content}</div>
+        <div class="doc-row-actions">
+          <button class="doc-copy-btn" id="copy-${idx}" onclick="copyDoc(${idx})">📋 Copy</button>
+          <button class="doc-share-btn" onclick="shareDoc(${idx})">↗</button>
+        </div>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+function toggleDoc(idx, topEl) {
+  const row = topEl.closest('.doc-row');
+  const isOpen = row.classList.contains('open');
+  document.querySelectorAll('.doc-row').forEach(r => r.classList.remove('open'));
+  if (!isOpen) row.classList.add('open');
+}
+
+async function copyDoc(idx) {
+  const btn = document.getElementById('copy-' + idx);
+  try {
+    await navigator.clipboard.writeText(APP.docs[idx].content);
+    btn.textContent = '✓ Copied!'; btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = '📋 Copy'; btn.classList.remove('copied'); }, 2500);
+  } catch (e) {
+    // Fallback
+    const range = document.createRange();
+    const textEl = btn.closest('.doc-row-body').querySelector('.doc-row-text');
+    range.selectNode(textEl);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    window.getSelection().removeAllRanges();
+    btn.textContent = '✓ Copied!'; btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = '📋 Copy'; btn.classList.remove('copied'); }, 2500);
+  }
+}
+
+async function shareDoc(idx) {
+  const doc = APP.docs[idx];
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: doc.title, text: doc.content });
+    } catch(e) {}
+  } else {
+    copyDoc(idx);
+  }
+}
+
+// ══════════════════════════════════════════
+// 1023-EZ QUESTIONS
+// ══════════════════════════════════════════
+const EZ_QUESTIONS = [
+  {
+    id: 'orgName', part: 'I', partTitle: 'Identification',
+    label: 'What is the full legal name of your organization?',
+    plain: 'This must be exactly as it appears on your Articles of Incorporation — every word, comma, and period included. The IRS will match this against your state records.',
+    type: 'text', placeholder: 'e.g., Roll Out PTSD, Inc.',
+    hint: 'Triple-check the capitalization and punctuation against your state filing.',
+    founderNote: 'My biggest tip: the spelling has to be exact. Not close — exact.',
+    autofill: () => APP.orgData.orgName || ''
+  },
+  {
+    id: 'ein', part: 'I', partTitle: 'Identification',
+    label: 'What is your Employer Identification Number (EIN)?',
+    plain: 'Your EIN is a 9-digit number in the format XX-XXXXXXX. You received this when you applied at IRS.gov.\n\nImportant: The IRS recommends waiting at least two weeks after getting your EIN before filing the 1023-EZ. Their systems need time to sync.',
+    type: 'text', placeholder: 'XX-XXXXXXX',
+    hint: 'No EIN yet? Get one free at IRS.gov — takes about 15 minutes.',
+    founderNote: 'I got my EIN first, waited about two weeks, then filed the 1023-EZ. That sequence matters.',
+    autofill: () => APP.orgData.ein !== 'Not provided' ? APP.orgData.ein : ''
+  },
+  {
+    id: 'address', part: 'I', partTitle: 'Identification',
+    label: "What is your organization's mailing address?",
+    plain: "This is where the IRS will send your determination letter. It can be the president's home address, a P.O. box, or a physical office. Many small nonprofits use the founder's home address when starting — that is completely fine.",
+    type: 'text', placeholder: 'Street, City, State, ZIP',
+    hint: 'This address will be public record. A P.O. box is a good option for privacy.'
+  },
+  {
+    id: 'email', part: 'I', partTitle: 'Identification',
+    label: 'What email address should the IRS use to contact you?',
+    plain: 'Your determination letter and IRS correspondence will come here. Check this email regularly after submitting — approvals sometimes come faster than expected.',
+    type: 'text', placeholder: 'director@yourorganization.org',
+    hint: 'An organization email (info@yourorg.org) looks more professional than a personal Gmail, but either works.'
+  },
+  {
+    id: 'formationDate', part: 'I', partTitle: 'Identification',
+    label: 'When was your organizing document adopted?',
+    plain: 'This is the date your Articles of Incorporation were signed or adopted — not the date the state approved them. Look at the top of your Articles of Incorporation for this date.',
+    type: 'text', placeholder: 'e.g., January 15, 2025',
+    hint: 'The date the document was signed, not the date the state processed it.'
+  },
+  {
+    id: 'state', part: 'I', partTitle: 'Identification',
+    label: 'In which state or territory is your organization incorporated?',
+    plain: 'This is where you filed your Articles of Incorporation. US territories — Puerto Rico, Guam, US Virgin Islands — are fully supported by the IRS for 501(c)(3) status.',
+    type: 'select',
+    options: ['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming','District of Columbia','Puerto Rico','Guam','U.S. Virgin Islands','American Samoa','Northern Mariana Islands'],
+    founderNote: 'I incorporated in Puerto Rico. The IRS treats territories exactly the same as states for 501(c)(3) applications.',
+    autofill: () => APP.orgData.homeState || ''
+  },
+  {
+    id: 'fiscalYear', part: 'I', partTitle: 'Identification',
+    label: 'When does your fiscal year end?',
+    plain: 'December 31 is by far the most common choice for small nonprofits — it aligns with the calendar year, makes your annual 990-N filing easy to remember (due May 15), and simplifies board financial reporting.',
+    type: 'autofill', autofillValue: 'December 31',
+    autofillNote: 'Pre-selected: December 31 — the standard for most small nonprofits. Change it only if your board has decided on a different date.',
+    founderNote: 'December 31. Don\'t overthink it.'
+  },
+  {
+    id: 'ntee', part: 'I', partTitle: 'Identification',
+    label: "What best describes what your organization does?",
+    plain: "The IRS uses NTEE codes to categorize nonprofits — this helps grantmakers and donation platforms understand your work. We'll narrow it down together in two steps.",
+    type: 'ntee',
+    founderNote: 'For Roll Out PTSD I use F30 — Mental Health Treatment — because our core work is peer support and mental health resources for veterans.'
+  },
+  {
+    id: 'orgType', part: 'II', partTitle: 'Organizational Structure',
+    label: 'What type of legal entity is your organization?',
+    plain: 'Almost all small nonprofits filing the 1023-EZ are incorporated as a nonprofit corporation — meaning you filed Articles of Incorporation with your state.',
+    type: 'options',
+    options: [
+      { value: 'corp', label: 'Nonprofit Corporation', desc: 'You filed Articles of Incorporation — the most common choice' },
+      { value: 'trust', label: 'Trust', desc: 'You have a trust document signed by trustee(s)' },
+      { value: 'unincorp', label: 'Unincorporated Association', desc: 'You have a written document signed by at least two people' }
+    ],
+    founderNote: 'If you used our platform to generate your documents, you are a nonprofit corporation.'
+  },
+  {
+    id: 'hasPurpose', part: 'II', partTitle: 'Organizational Structure',
+    label: 'Do your organizing documents include the required 501(c)(3) purpose clause?',
+    plain: 'Your Articles of Incorporation must contain language stating the organization is organized exclusively for charitable purposes under IRC Section 501(c)(3).\n\nIf you used our generated documents, this language is already included.',
+    type: 'options',
+    options: [
+      { value: 'yes', label: 'Yes — my documents contain this language', desc: 'You can confirm this box on the form' },
+      { value: 'unsure', label: 'I need to check', desc: 'Search your Articles of Incorporation for "501(c)(3)" — it should be there' }
+    ],
+    founderNote: 'Open your Articles of Incorporation and search for "501(c)(3)" — if it\'s there, you\'re good. This is a hard requirement.'
+  },
+  {
+    id: 'hasDissolution', part: 'II', partTitle: 'Organizational Structure',
+    label: 'Do your organizing documents include a dissolution clause?',
+    plain: 'The IRS requires your organizing document to state what happens to assets if the organization dissolves. Our generated documents already include the correct IRS-approved language.',
+    type: 'options',
+    options: [
+      { value: 'yes', label: 'Yes — my documents have a dissolution clause', desc: 'Required — good, you\'re covered' },
+      { value: 'no', label: 'I need to add one', desc: 'We\'ll provide the exact language to add before you file' }
+    ]
+  },
+  {
+    id: 'foundationClass', part: 'IV', partTitle: 'Foundation Classification',
+    label: 'How does your organization plan to receive most of its funding?',
+    plain: 'This determines your public charity classification. Most small nonprofits funded by individual donations, fundraising events, and public grants are 509(a)(1) under section 170(b)(1)(A)(vi) — the public support test. We will tell you exactly what to select.',
+    type: 'options',
+    options: [
+      { value: 'public', label: 'Donations, fundraising events, and public grants', desc: 'Most small nonprofits — select 509(a)(1) with 170(b)(1)(A)(vi) on the form' },
+      { value: 'fees', label: 'Fees charged for services to the public', desc: 'If you charge for programs or services — select 509(a)(2)' },
+      { value: 'church', label: 'We are a church or religious organization', desc: 'Select 170(b)(1)(A)(i)' },
+      { value: 'school', label: 'We are a formal school', desc: 'Select 170(b)(1)(A)(ii)' }
+    ],
+    founderNote: 'For Roll Out PTSD I selected 509(a)(1) with 170(b)(1)(A)(vi). We get money from donors and events. That is the right choice for almost every community nonprofit.'
+  },
+  {
+    id: 'attest_activities', part: 'V', partTitle: 'Attestation',
+    label: 'Confirm: All of your activities will further your exempt purpose.',
+    plain: 'Everything your organization does should connect to your charitable mission. For almost all community nonprofits, the answer is yes — check this box with confidence.',
+    type: 'confirm', confirmLabel: 'Yes — all our activities further our charitable mission.'
+  },
+  {
+    id: 'attest_lobbying', part: 'V', partTitle: 'Attestation',
+    label: 'Will lobbying be a substantial part of your activities?',
+    plain: '501(c)(3)s can do some lobbying — it just cannot be a substantial part of what they do. You can advocate for causes, educate the public, and meet with legislators. You just cannot make lobbying your primary mission.',
+    type: 'options',
+    options: [
+      { value: 'no', label: 'No — lobbying will not be substantial', desc: 'Correct for the vast majority of community nonprofits' },
+      { value: 'yes', label: 'Yes — lobbying will be a primary activity', desc: 'This may affect your application — consult an attorney' }
+    ]
+  },
+  {
+    id: 'attest_political', part: 'V', partTitle: 'Attestation',
+    label: 'Will you participate in political campaigns for or against any candidate?',
+    plain: 'This is an absolute prohibition for 501(c)(3) organizations. You cannot endorse political candidates or use organizational resources to support or oppose anyone running for office. Voter registration drives and issue education are allowed — candidate endorsements are not.',
+    type: 'options',
+    options: [
+      { value: 'no', label: 'No — we will not engage in political campaigns', desc: 'Required for 501(c)(3) status' }
+    ]
+  },
+  {
+    id: 'attest_sign', part: 'V', partTitle: 'Attestation',
+    label: 'Final attestation — under penalty of perjury.',
+    plain: 'The final item requires your authorized officer to sign under penalty of perjury that everything is accurate. If you answered all questions honestly, you are signing something true. The legal language is formal but it is simply asking you to be truthful — which you have been.',
+    type: 'confirm',
+    confirmLabel: 'I understand and will sign the attestation as an authorized officer.',
+    founderNote: '"Penalty of perjury" sounds scary. But if everything you said is true, you have nothing to worry about. I signed it and never looked back.'
+  }
+];
+
+// NTEE data
+const NTEE_BUCKETS = [
+  { id: 'people', icon: '🤝', label: 'We support people through something difficult',
+    examples: 'Mental health, addiction, grief, veterans, crisis support, disability',
+    codes: [
+      { code: 'W30', name: 'Military & Veterans Organizations', desc: 'Community and services for veterans and military families', why: 'Primary identity is serving veterans through community programs, benefits, or peer support.' },
+      { code: 'F30', name: 'Mental Health Treatment', desc: 'Counseling, peer support, and mental health services', why: 'Core work is mental health — even if you serve veterans, mental health drives your programs.' },
+      { code: 'F60', name: 'Crisis Intervention & Counseling', desc: 'Hotlines, crisis response, and short-term counseling', why: 'You respond to people in acute crisis.' },
+      { code: 'F20', name: 'Substance Abuse & Recovery', desc: 'Addiction treatment and recovery support', why: 'Primary mission is helping people recover from addiction.' },
+      { code: 'G00', name: 'Disease & Disorder Specific', desc: 'Support for people affected by a specific condition', why: 'Mission centers on a specific medical condition.' }
+    ]
+  },
+  { id: 'community', icon: '🏘️', label: 'We strengthen a specific community',
+    examples: 'Neighborhood development, civil rights, immigrant services, civic engagement',
+    codes: [
+      { code: 'S20', name: 'Community Development', desc: 'Neighborhood programs and local civic projects', why: 'You build social cohesion or improve a specific geographic community.' },
+      { code: 'R00', name: 'Civil Rights & Advocacy', desc: 'Voting rights, racial justice, and civil liberties', why: 'Core work is advocacy — changing systems or policies.' },
+      { code: 'P84', name: 'Ethnic & Immigrant Services', desc: 'Services for specific ethnic or immigrant populations', why: 'Primarily serve immigrants, refugees, or a specific cultural community.' }
+    ]
+  },
+  { id: 'youth', icon: '🌱', label: 'We serve young people or provide education',
+    examples: 'After-school, mentoring, tutoring, scholarships, job training',
+    codes: [
+      { code: 'O20', name: 'Youth Centers & Clubs', desc: 'After-school programs and youth centers', why: 'You run a space where young people gather for programming and support.' },
+      { code: 'O30', name: 'Mentoring Programs', desc: 'One-on-one or group mentoring', why: 'Matching young people with mentors is a core program.' },
+      { code: 'B60', name: 'Adult & Continuing Education', desc: 'Job training, GED, workforce development', why: 'You educate adults — job skills, literacy, or professional development.' },
+      { code: 'B82', name: 'Scholarships & Financial Aid', desc: 'Scholarships and financial support for students', why: 'Providing scholarships is your primary activity.' }
+    ]
+  },
+  { id: 'health', icon: '❤️', label: 'We serve health and wellness',
+    examples: 'Physical health, nutrition, fitness, medical access, disease prevention',
+    codes: [
+      { code: 'E70', name: 'Public Health & Wellness', desc: 'Community health education and prevention', why: 'You educate communities about health or run prevention programs.' },
+      { code: 'E00', name: 'Health Care (General)', desc: 'Broad health services and medical access', why: 'You provide direct health services or connect people to care.' },
+      { code: 'N60', name: 'Fitness & Recreational Sports', desc: 'Sports programs and fitness with a health focus', why: 'Physical activity is your primary program — using sports to improve wellbeing.' },
+      { code: 'K30', name: 'Food Banks & Nutrition', desc: 'Food assistance and hunger relief', why: 'Fighting hunger or improving nutrition is your primary mission.' }
+    ]
+  },
+  { id: 'arts', icon: '🎨', label: 'We protect, preserve, or create something',
+    examples: 'Arts, culture, environment, animals, historical preservation',
+    codes: [
+      { code: 'A20', name: 'Arts & Cultural Organizations', desc: 'Visual arts, performing arts, and cultural programming', why: 'Creating or supporting artistic and cultural work is your core mission.' },
+      { code: 'C32', name: 'Environmental Conservation', desc: 'Land conservation and environmental protection', why: 'Preserving natural spaces or protecting ecosystems is primary.' },
+      { code: 'D20', name: 'Animal Protection & Welfare', desc: 'Animal shelters, rescue, and wildlife care', why: 'Protecting or rescuing animals is your primary mission.' }
+    ]
+  },
+  { id: 'housing', icon: '🏠', label: 'We address housing or economic stability',
+    examples: 'Affordable housing, homelessness, job creation, financial assistance',
+    codes: [
+      { code: 'L41', name: 'Homeless Services', desc: 'Shelters, transitional housing, and homeless services', why: 'Primary work serves people experiencing homelessness.' },
+      { code: 'L20', name: 'Affordable Housing', desc: 'Building or preserving affordable housing', why: 'You develop or advocate for affordable housing as your core mission.' },
+      { code: 'J22', name: 'Job Training & Workforce', desc: 'Employment training and placement', why: 'Helping people find employment through training is your primary program.' }
+    ]
+  },
+  { id: 'faith', icon: '✝️', label: 'We are a faith-based or religious organization',
+    examples: 'Church, mosque, temple, synagogue, religious education',
+    codes: [
+      { code: 'X20', name: 'Christian Organizations', desc: 'Christian churches and faith-based organizations', why: '' },
+      { code: 'X30', name: 'Jewish Organizations', desc: 'Jewish synagogues and faith-based organizations', why: '' },
+      { code: 'X40', name: 'Islamic Organizations', desc: 'Islamic mosques and faith-based organizations', why: '' },
+      { code: 'X80', name: 'Religious Services & Interfaith', desc: 'Interfaith and faith-motivated service organizations', why: 'Faith-motivated but serving people regardless of religion.' }
+    ]
+  }
+];
+
+const ALL_NTEE = NTEE_BUCKETS.flatMap(b => b.codes);
+
+// EZ needs checklist
+const EZ_NEEDS = [
+  { label: 'Your EIN', desc: 'Free 9-digit number from IRS.gov. Format: XX-XXXXXXX.', link: 'https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online', linkText: 'Get EIN free at IRS.gov →' },
+  { label: 'Your Articles of Incorporation', desc: 'Filed with your state. You\'ll need your incorporation date and to confirm it has the required IRS language.' },
+  { label: 'Your organization\'s exact legal name', desc: 'As it appears on your state filing — spelling and punctuation included.' },
+  { label: 'A credit or debit card', desc: 'The filing fee is $275, paid at the end on Pay.gov.' },
+  { label: 'A Pay.gov account (free)', desc: 'Create yours at pay.gov before you start.', link: 'https://www.pay.gov', linkText: 'Create Pay.gov account →' }
+];
+
+function showPage_1023() {
+  showPage('pg-1023');
+  // Build needs list
+  const needsEl = document.getElementById('ez-needs');
+  needsEl.innerHTML = '';
+  EZ_NEEDS.forEach(need => {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border);';
+    div.innerHTML = `
+      <div style="width:22px;height:22px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;transition:all .2s;background:var(--white);"
+        onclick="toggleNeed(this)"></div>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;">${need.label}</div>
+        <div style="font-size:12px;color:var(--text-light);line-height:1.5;">${need.desc}</div>
+        ${need.link ? `<a href="${need.link}" target="_blank" style="font-size:12px;color:var(--claude);font-weight:600;text-decoration:none;display:block;margin-top:3px;">${need.linkText}</a>` : ''}
+      </div>`;
+    needsEl.appendChild(div);
+  });
+}
+
+function toggleNeed(el) {
+  const on = el.classList.toggle('checked');
+  el.style.background = on ? 'var(--success)' : 'var(--white)';
+  el.style.borderColor = on ? 'var(--success)' : 'var(--border)';
+  el.style.color = on ? 'white' : 'transparent';
+  el.textContent = on ? '✓' : '';
+}
+
+function startEZ() {
+  document.getElementById('ez-intro').style.display = 'none';
+  document.getElementById('ez-questions').style.display = 'flex';
+  APP.ezCurrentQ = 0;
+  renderEZQuestion();
+}
+
+function ezBack() {
+  if (APP.ezCurrentQ === 0) {
+    document.getElementById('ez-questions').style.display = 'none';
+    document.getElementById('ez-intro').style.display = 'flex';
+  } else {
+    ezPrev();
+  }
+}
+
+function renderEZQuestion() {
+  // Skip conditionals
+  while (APP.ezCurrentQ < EZ_QUESTIONS.length) {
+    const q = EZ_QUESTIONS[APP.ezCurrentQ];
+    if (q.conditional && APP.ezAnswers[q.conditional.id] !== q.conditional.value) {
+      APP.ezCurrentQ++;
+    } else break;
+  }
+
+  if (APP.ezCurrentQ >= EZ_QUESTIONS.length) {
+    buildAnswerSheet();
+    document.getElementById('ez-questions').style.display = 'none';
+    document.getElementById('ez-sheet').style.display = 'flex';
+    return;
+  }
+
+  const q = EZ_QUESTIONS[APP.ezCurrentQ];
+  const pct = Math.round((APP.ezCurrentQ / EZ_QUESTIONS.length) * 100);
+  document.getElementById('ez-progress').style.width = pct + '%';
+  document.getElementById('ez-topbar-sub').textContent = 'Part ' + q.part + ' — ' + q.partTitle;
+  document.getElementById('ez-part-num').textContent = q.part;
+  document.getElementById('ez-part-label').textContent = 'Part ' + q.part;
+  document.getElementById('ez-part-title').textContent = q.partTitle;
+
+  // Autofill if available
+  if (q.autofill && !APP.ezAnswers[q.id]) {
+    const val = q.autofill();
+    if (val) APP.ezAnswers[q.id] = val;
+  }
+
+  const body = document.getElementById('ez-q-body');
+  let html = `<div class="q-card">
+    <div class="q-card-head">
+      <div class="q-num">Question ${APP.ezCurrentQ + 1} of ${EZ_QUESTIONS.length}</div>
+      <div class="q-label">${q.label}</div>
+    </div>`;
+
+  if (q.plain) {
+    html += `<div class="q-plain"><div class="q-plain-label">In plain English</div>${q.plain.replace(/\n/g,'<br>')}</div>`;
+  }
+
+  html += `<div class="q-input-wrap">`;
+
+  if (q.type === 'text') {
+    const val = APP.ezAnswers[q.id] || '';
+    html += `<input class="q-input" type="text" id="ez-field" value="${val}" placeholder="${q.placeholder||''}" oninput="ezSave('${q.id}',this.value)">`;
+    if (q.hint) html += `<div class="q-input-hint">${q.hint}</div>`;
+  }
+
+  else if (q.type === 'select') {
+    const val = APP.ezAnswers[q.id] || '';
+    html += `<select class="q-input" id="ez-field" onchange="ezSave('${q.id}',this.value)">
+      <option value="">Select state or territory...</option>`;
+    q.options.forEach(opt => {
+      html += `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}</option>`;
+    });
+    html += `</select>`;
+  }
+
+  else if (q.type === 'options') {
+    html += `<div class="q-options">`;
+    q.options.forEach(opt => {
+      const sel = APP.ezAnswers[q.id] === opt.value ? 'selected' : '';
+      html += `<button class="q-opt ${sel}" onclick="ezSelectOpt('${q.id}','${opt.value}',this)">
+        <span class="q-opt-label">${opt.label}</span>
+        ${opt.desc ? '<span class="q-opt-desc">' + opt.desc + '</span>' : ''}
+      </button>`;
+    });
+    html += `</div>`;
+  }
+
+  else if (q.type === 'autofill') {
+    const curr = APP.ezAnswers[q.id] || q.autofillValue;
+    if (!APP.ezAnswers[q.id]) APP.ezAnswers[q.id] = q.autofillValue;
+    html += `<div class="q-autofill" id="ez-autofill-box">
+      <div class="q-autofill-icon">✓</div>
+      <div>
+        <div class="q-autofill-val">${curr}</div>
+        <div class="q-autofill-note">${q.autofillNote}</div>
+        <button class="q-autofill-change" onclick="ezEditAutofill('${q.id}','${q.autofillValue}')">Change →</button>
+      </div>
+    </div>
+    <div id="ez-autofill-edit" style="display:none;margin-top:10px;">
+      <input class="q-input" type="text" id="ez-field" value="${curr}" placeholder="e.g. June 30" oninput="ezSave('${q.id}',this.value)">
+    </div>`;
+  }
+
+  else if (q.type === 'ntee') {
+    const selBucket = APP.ezAnswers['ntee_bucket'] || '';
+    const selCode = APP.ezAnswers['ntee'] || '';
+    html += `<div class="ntee-bucket-list">`;
+    NTEE_BUCKETS.forEach(b => {
+      html += `<div class="ntee-bucket ${selBucket === b.id ? 'selected' : ''}" onclick="ezNteeBucket('${b.id}')">
+        <div class="ntee-b-icon">${b.icon}</div>
+        <div><div class="ntee-b-label">${b.label}</div><div class="ntee-b-examples">${b.examples}</div></div>
+      </div>`;
+    });
+    html += `</div>
+    <div class="ntee-step2 ${selBucket ? 'active' : ''}" id="ntee-step2">
+      <div class="ntee-step2-label">Now pick the best match for your specific work</div>
+      <div class="ntee-refined" id="ntee-refined">`;
+    if (selBucket) {
+      const bkt = NTEE_BUCKETS.find(b => b.id === selBucket);
+      if (bkt) bkt.codes.forEach(c => {
+        html += `<div class="ntee-r-item ${selCode === c.code ? 'selected' : ''}" onclick="ezNteeCode('${c.code}','${c.name.replace(/'/g,"\\'")}','${c.why.replace(/'/g,"\\'")}')">
+          <div class="ntee-r-code">${c.code}</div>
+          <div><div class="ntee-r-name">${c.name}</div><div class="ntee-r-desc">${c.desc}</div></div>
+        </div>`;
+      });
+    }
+    html += `</div></div>
+    <div class="ntee-confirm ${selCode ? 'active' : ''}" id="ntee-confirm">`;
+    if (selCode) {
+      const m = ALL_NTEE.find(c => c.code === selCode);
+      if (m) html += `<div class="ntee-confirm-code">✓ Selected</div>
+        <div class="ntee-confirm-name">${m.code} — ${m.name}</div>
+        ${m.why ? '<div class="ntee-confirm-why">' + m.why + '</div>' : ''}
+        <button class="ntee-change-btn" onclick="ezNteeReset()">Change →</button>`;
+    }
+    html += `</div>`;
+  }
+
+  else if (q.type === 'confirm') {
+    const checked = APP.ezAnswers[q.id] === 'yes';
+    html += `<div class="q-confirm-row" onclick="ezToggleConfirm('${q.id}',this)">
+      <div class="q-check-box ${checked ? 'on' : ''}">${checked ? '✓' : ''}</div>
+      <div class="q-confirm-label">${q.confirmLabel}</div>
+    </div>`;
+  }
+
+  else if (q.type === 'info') {
+    html += `<div style="background:var(--cream);border-radius:8px;padding:13px;font-size:14px;color:var(--text-mid);line-height:1.65;">Tap <strong>Next</strong> when you're ready to continue.</div>`;
+  }
+
+  html += `</div>`;
+
+  if (q.founderNote) {
+    html += `<div style="padding:13px 16px;border-top:1px solid var(--border);background:var(--gold-pale);display:flex;gap:10px;align-items:flex-start;">
+      <div style="font-size:15px;flex-shrink:0;">⭐</div>
+      <div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--silver-muted);margin-bottom:3px;">From the Founder</div>
+        <div style="font-size:12px;color:var(--text-mid);line-height:1.62;font-style:italic;">${q.founderNote}</div>
+      </div>
+    </div>`;
+  }
+
+  html += `</div>`;
+
+  body.innerHTML = html;
+  body.scrollTop = 0;
+
+  // Nav visibility
+  document.getElementById('ez-prev').style.display = APP.ezCurrentQ === 0 ? 'none' : 'flex';
+  const isLast = APP.ezCurrentQ === EZ_QUESTIONS.length - 1;
+  const nextBtn = document.getElementById('ez-next');
+  nextBtn.className = 'btn ' + (isLast ? 'btn-gold' : 'btn-navy');
+  nextBtn.style.flex = '1';
+  nextBtn.textContent = isLast ? '✦ Generate Answer Sheet' : 'Next →';
+}
+
+function ezSave(id, val) { APP.ezAnswers[id] = val; }
+
+function ezSelectOpt(id, val, btn) {
+  APP.ezAnswers[id] = val;
+  document.querySelectorAll('.q-opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function ezToggleConfirm(id, row) {
+  const box = row.querySelector('.q-check-box');
+  const on = APP.ezAnswers[id] !== 'yes';
+  APP.ezAnswers[id] = on ? 'yes' : '';
+  box.classList.toggle('on', on);
+  box.textContent = on ? '✓' : '';
+}
+
+function ezEditAutofill(id) {
+  document.getElementById('ez-autofill-box').style.display = 'none';
+  document.getElementById('ez-autofill-edit').style.display = 'block';
+  const inp = document.getElementById('ez-field');
+  if (inp) inp.focus();
+}
+
+function ezNteeBucket(bucketId) {
+  APP.ezAnswers['ntee_bucket'] = bucketId;
+  APP.ezAnswers['ntee'] = '';
+  document.querySelectorAll('.ntee-bucket').forEach(b => b.classList.remove('selected'));
+  [...document.querySelectorAll('.ntee-bucket')].find(b => b.onclick?.toString().includes(bucketId))?.classList.add('selected');
+
+  const bkt = NTEE_BUCKETS.find(b => b.id === bucketId);
+  const refined = document.getElementById('ntee-refined');
+  if (bkt && refined) {
+    refined.innerHTML = bkt.codes.map(c =>
+      `<div class="ntee-r-item" onclick="ezNteeCode('${c.code}','${c.name.replace(/'/g,"\\'")}','${c.why.replace(/'/g,"\\'")}')">
+        <div class="ntee-r-code">${c.code}</div>
+        <div><div class="ntee-r-name">${c.name}</div><div class="ntee-r-desc">${c.desc}</div></div>
+      </div>`).join('');
+  }
+
+  const step2 = document.getElementById('ntee-step2');
+  const confirm = document.getElementById('ntee-confirm');
+  if (step2) { step2.classList.add('active'); setTimeout(() => step2.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100); }
+  if (confirm) confirm.classList.remove('active');
+}
+
+function ezNteeCode(code, name, why) {
+  APP.ezAnswers['ntee'] = code;
+  document.querySelectorAll('.ntee-r-item').forEach(i => i.classList.remove('selected'));
+  [...document.querySelectorAll('.ntee-r-item')].find(i => i.getAttribute('onclick')?.includes(`'${code}'`))?.classList.add('selected');
+  const confirm = document.getElementById('ntee-confirm');
+  if (confirm) {
+    confirm.classList.add('active');
+    confirm.innerHTML = `<div class="ntee-confirm-code">✓ Selected</div>
+      <div class="ntee-confirm-name">${code} — ${name}</div>
+      ${why ? '<div class="ntee-confirm-why">' + why + '</div>' : ''}
+      <button class="ntee-change-btn" onclick="ezNteeReset()">Change →</button>`;
+    setTimeout(() => confirm.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
+  }
+}
+
+function ezNteeReset() {
+  APP.ezAnswers['ntee'] = ''; APP.ezAnswers['ntee_bucket'] = '';
+  document.querySelectorAll('.ntee-bucket').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.ntee-r-item').forEach(i => i.classList.remove('selected'));
+  const step2 = document.getElementById('ntee-step2');
+  const confirm = document.getElementById('ntee-confirm');
+  if (step2) step2.classList.remove('active');
+  if (confirm) confirm.classList.remove('active');
+}
+
+function ezNext() {
+  const q = EZ_QUESTIONS[APP.ezCurrentQ];
+  // Basic validation
+  if (['text','select'].includes(q.type)) {
+    const inp = document.getElementById('ez-field');
+    if (inp && !APP.ezAnswers[q.id] && q.id !== 'email') {
+      inp.style.borderColor = 'var(--danger)';
+      inp.focus();
+      setTimeout(() => inp.style.borderColor = '', 1600);
+      return;
+    }
+  }
+  if (q.type === 'options' && !APP.ezAnswers[q.id]) {
+    document.querySelectorAll('.q-opt').forEach(o => { o.style.borderColor = 'var(--danger)'; setTimeout(() => o.style.borderColor = '', 1600); });
+    return;
+  }
+  APP.ezCurrentQ++;
+  renderEZQuestion();
+  window.scrollTo(0,0);
+}
+
+function ezPrev() {
+  if (APP.ezCurrentQ > 0) {
+    APP.ezCurrentQ--;
+    while (APP.ezCurrentQ > 0) {
+      const q = EZ_QUESTIONS[APP.ezCurrentQ];
+      if (q.conditional && APP.ezAnswers[q.conditional.id] !== q.conditional.value) APP.ezCurrentQ--;
+      else break;
+    }
+    renderEZQuestion();
+    window.scrollTo(0,0);
+  }
+}
+
+// ══════════════════════════════════════════
+// ANSWER SHEET
+// ══════════════════════════════════════════
+function buildAnswerSheet() {
+  const a = APP.ezAnswers;
+  const d = APP.orgData;
+  const nteeMatch = ALL_NTEE.find(c => c.code === a.ntee);
+  const nteeLabel = nteeMatch ? a.ntee + ' — ' + nteeMatch.name : (a.ntee || 'Not selected');
+
+  const foundationMap = {
+    public:   '509(a)(1) — Section 170(b)(1)(A)(vi)\n(Public Support Test — most small nonprofits)',
+    fees:     '509(a)(2) — Service fee-based public charity',
+    church:   '509(a)(1) — Section 170(b)(1)(A)(i) — Church',
+    school:   '509(a)(1) — Section 170(b)(1)(A)(ii) — School',
+    hospital: '509(a)(1) — Section 170(b)(1)(A)(iii) — Hospital'
+  };
+
+  const content = document.getElementById('ez-sheet-content');
+  content.innerHTML = `
+    <div class="answer-part-title">📋 Part I — Identification</div>
+    ${answerRow('Organization Legal Name', a.orgName || d.orgName || '[Exact name from Articles of Incorporation]', 'Enter exactly as it appears on your state filing.')}
+    ${answerRow('EIN', a.ein || d.ein || '[XX-XXXXXXX]', 'Wait at least 2 weeks after receiving your EIN before submitting.')}
+    ${answerRow('Mailing Address', a.address || '[Your mailing address]')}
+    ${answerRow('Email', a.email || '[Your contact email]', 'Check this inbox regularly after submitting.')}
+    ${answerRow('Formation / Adoption Date', a.formationDate || '[Date your organizing document was signed]', 'The date the document was signed — not the state approval date.')}
+    ${answerRow('State / Territory of Incorporation', a.state || d.homeState || '[Your state]')}
+    ${answerRow('Fiscal Year End', a.fiscalYear || 'December 31', 'Enter month 12, day 31 on the form if December 31.')}
+    ${answerRow('NTEE Code', nteeLabel, 'This categorizes your organization in IRS and grantmaker databases.')}
+
+    <div class="answer-part-title" style="margin-top:16px;">🏛️ Part II — Organizational Structure</div>
+    ${answerRow('Entity Type', a.orgType === 'corp' ? 'Nonprofit Corporation' : (a.orgType || 'Nonprofit Corporation'), 'Select the type that matches your state filing.')}
+    ${answerRow('Purpose Clause', '✓ Confirmed in organizing document', 'Check this box on the form.', true)}
+    ${answerRow('Dissolution Clause', '✓ Confirmed in organizing document', 'Check this box on the form.', true)}
+
+    <div class="answer-part-title" style="margin-top:16px;">✅ Part III — Required Provisions</div>
+    ${answerRow('All three provisions', '✓ Check all three boxes', 'Purposes limited, assets dedicated, no private benefit.', true)}
+
+    <div class="answer-part-title" style="margin-top:16px;">🏷️ Part IV — Foundation Classification</div>
+    ${answerRow('Public Charity Classification', foundationMap[a.foundationClass] || foundationMap.public, 'Select this exact option on the form.', false, true)}
+    ${answerRow('Private Foundation', 'No — we are a public charity ✓', 'Check No.', true)}
+
+    <div class="answer-part-title" style="margin-top:16px;">📝 Part V — Attestation</div>
+    <div class="answer-row">
+      <div class="answer-field">All Attestation Checkboxes</div>
+      ${[
+        ['Activities further exempt purpose', 'Check Yes'],
+        ['No substantial lobbying', 'Check No'],
+        ['No political campaign activity', 'Check No'],
+        ['No racial discrimination', 'Check No'],
+        ['No improper private benefit', 'Check No'],
+        ['Final signature', 'Sign as authorized officer with your title']
+      ].map(([label, action]) => `<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);">
+        <div style="width:20px;height:20px;background:var(--success);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;color:white;flex-shrink:0;margin-top:1px;">✓</div>
+        <div style="font-size:13px;color:var(--text-mid);line-height:1.5;"><strong>${label}:</strong> ${action}</div>
+      </div>`).join('')}
+    </div>
+
+    <div class="answer-part-title" style="margin-top:16px;">💳 Filing Fee</div>
+    ${answerRow('Amount', '$275', 'Paid at the end on Pay.gov. Verify current fee at IRS.gov before submitting.')}
+  `;
+
+  document.getElementById('ez-progress').style.width = '100%';
+}
+
+function answerRow(field, value, note, isGood, isLong) {
+  return `<div class="answer-row">
+    <div class="answer-field">${field}</div>
+    <div class="answer-value ${isLong ? 'long' : ''}" ${isGood ? 'style="color:var(--success);"' : ''}>${value.replace(/\n/g,'<br>')}</div>
+    ${note ? `<div class="answer-note">${note}</div>` : ''}
+  </div>`;
+}
+
+async function copySheet() {
+  const btn = document.getElementById('ez-copy-btn');
+  const a = APP.ezAnswers;
+  const d = APP.orgData;
+  const nteeMatch = ALL_NTEE.find(c => c.code === a.ntee);
+  const nteeLabel = nteeMatch ? a.ntee + ' — ' + nteeMatch.name : (a.ntee || 'Not selected');
+
+  const text = `1023-EZ ANSWER SHEET
+${a.orgName || d.orgName || 'Your Organization'}
+Generated by Nascent Cause
+
+════════════════════════════
+PART I — IDENTIFICATION
+════════════════════════════
+Legal Name:     ${a.orgName || d.orgName || '[Exact name]'}
+EIN:            ${a.ein || d.ein || '[XX-XXXXXXX]'}
+Address:        ${a.address || '[Mailing address]'}
+Email:          ${a.email || '[Contact email]'}
+Formation Date: ${a.formationDate || '[Date organizing document adopted]'}
+State:          ${a.state || d.homeState || '[State or territory]'}
+Fiscal Year:    ${a.fiscalYear || 'December 31'}
+NTEE Code:      ${nteeLabel}
+
+════════════════════════════
+PART II — STRUCTURE
+════════════════════════════
+Entity:         ${a.orgType === 'corp' ? 'Nonprofit Corporation' : 'See selection'}
+Purpose Clause: ✓ Confirmed
+Dissolution:    ✓ Confirmed
+
+════════════════════════════
+PART III — PROVISIONS
+════════════════════════════
+All three: ✓ Check all three boxes
+
+════════════════════════════
+PART IV — CLASSIFICATION
+════════════════════════════
+Classification: ${a.foundationClass === 'public' ? '509(a)(1) — Section 170(b)(1)(A)(vi)' : (a.foundationClass || '509(a)(1) — Section 170(b)(1)(A)(vi)')}
+Private Foundation: No
+
+════════════════════════════
+PART V — ATTESTATION
+════════════════════════════
+All standard boxes checked as guided.
+Final signature: Sign as authorized officer.
+
+════════════════════════════
+FILING FEE: $275
+SUBMIT AT: pay.gov
+════════════════════════════
+Built with the Nascent Cause`;
+
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = '✓ Copied!'; btn.classList.add('btn-success');
+    setTimeout(() => { btn.textContent = '📋 Copy All Answers'; btn.classList.remove('btn-success'); }, 3000);
+  } catch (e) {
+    alert('Please manually select and copy the answer sheet above.');
+  }
+}
+
+// ══════════════════════════════════════════
+// DEV TESTING — quick dashboard preview
+// Remove or gate behind auth before launch
+// ══════════════════════════════════════════
+function quickTestDash() {
+  APP.orgData = {
+    orgName: 'Roll Out PTSD, Inc.',
+    mission: 'Roll Out PTSD, Inc. exists to ensure that no veteran faces PTSD alone. We provide peer-led support, outdoor healing experiences, and practical resources that help service members and their families rebuild connection, resilience, and hope.',
+    homeState: 'Puerto Rico',
+    orgType: 'Veterans Mental Health Support',
+    founderName: 'Founder',
+    founderStory: 'After watching fellow veterans struggle to find resources that actually reached them, the founder decided to build the organization he wished had existed. Roll Out PTSD was created from lived experience and an unshakeable belief that community is medicine.',
+    programs: '1. Peer Support Groups — weekly veteran-led support circles in partnership with community centers.\n2. Outdoor Healing Experiences — monthly outdoor activities using nature and movement as therapeutic tools.\n3. Resource Navigation — one-on-one guidance connecting veterans to benefits, counseling, and community services.',
+    board1: 'James Martinez',
+    board2: 'Sarah Thompson',
+    board3: 'David Reyes',
+    boardNote: 'complete',
+    boardIncomplete: false,
+    ein: '85-1234567',
+    einPending: false,
+    website: 'https://www.rolloutptsd.org',
+    nextSteps: '1. Have all three board members sign the bylaws and conflict of interest policy.\n2. File your Articles of Incorporation with Puerto Rico\'s Department of State — this legally creates your organization.\n3. Get your EIN from IRS.gov after receiving state confirmation.\n4. Complete the 1023-EZ walkthrough for your federal 501(c)(3) application.',
+    stateNote: 'In Puerto Rico, nonprofit corporations file with the Department of State (Estado) — the process is conducted in Spanish and English and typically takes 2-4 weeks.',
+    missingItems: [],
+    docsGenerated: true
+  };
+  buildDocs();
+  buildDashboard();
+  showPage('pg-dash');
+}
+
+// ══════════════════════════════════════════
+// INPUT HELPERS
+// ══════════════════════════════════════════
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// showPage_1023() is now called directly inside showPage()
+
+// ══════════════════════════════════════════
+// DESKTOP LAYOUT ENGINE
+// ══════════════════════════════════════════
+function applyDesktopLayout() {
+  if (window.innerWidth >= 768) {
+    document.body.classList.add('is-desktop');
+  } else {
+    document.body.classList.remove('is-desktop');
+  }
+}
+
+// Run immediately, on DOM ready, and on resize
+applyDesktopLayout();
+document.addEventListener('DOMContentLoaded', applyDesktopLayout);
+window.addEventListener('resize', applyDesktopLayout);
+window.addEventListener('load', applyDesktopLayout);
+
+
+// ══════════════════════════════════════════
+// SUPABASE — Auth + Database
+// ══════════════════════════════════════════
+const SUPABASE_URL = 'https://tgduwavftiuwwbyppswk.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_yxUNqlWxVB3uSE9EOhy2yg_wT2fTPij';
+
+// Initialize Supabase client safely
+let supabaseClient = null;
+try {
+  const sbLib = window.supabase;
+  supabaseClient = sbLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  console.log('✓ Supabase initialized');
+} catch (e) {
+  console.error('Supabase init failed:', e);
+}
+
+// ── AUTH STATE ────────────────────────────────────────────────────────────────
+let currentUser = null;
+let currentOrgId = null;
+
+// Check if user is already logged in when page loads
+async function checkAuthState() {
+  if (!supabaseClient) return;
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+      currentUser = session.user;
+      await loadUserDashboard();
+    }
+  } catch (e) {
+    console.error('Auth check error:', e);
+  }
+}
+
+// ── SIGN UP ───────────────────────────────────────────────────────────────────
+async function handleSignup() {
+  const email    = document.getElementById('signupEmail').value.trim();
+  const password = document.getElementById('signupPassword').value;
+  const errorEl  = document.getElementById('signupError');
+  const btn      = document.getElementById('signupBtn');
+
+  // Clear previous errors
+  errorEl.style.display = 'none';
+
+  // Basic validation
+  if (!email || !email.includes('@')) {
+    errorEl.textContent = 'Please enter a valid email address.';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (!password || password.length < 8) {
+    errorEl.textContent = 'Password must be at least 8 characters.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = 'Creating account...';
+  btn.disabled = true;
+
+  if (!supabaseClient) {
+    // Supabase not available — continue without saving
+    continueWithoutAccount();
+    return;
+  }
+
+  try {
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+
+    if (error) throw error;
+
+    currentUser = data.user;
+
+    // Save org data to database
+    await saveOrgToDatabase();
+
+    // Go to dashboard
+    buildDashboard();
+    showPage('pg-dash');
+
+  } catch (err) {
+    console.error('Signup error:', err);
+    errorEl.textContent = err.message || 'Something went wrong. Please try again.';
+    errorEl.style.display = 'block';
+    btn.textContent = 'Create Account & Save Progress';
+    btn.disabled = false;
+  }
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
+async function handleLogin() {
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errorEl  = document.getElementById('loginError');
+  const btn      = document.getElementById('loginBtn');
+
+  errorEl.style.display = 'none';
+
+  if (!email || !password) {
+    errorEl.textContent = 'Please enter your email and password.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
+
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (error) throw error;
+
+    currentUser = data.user;
+    await loadUserDashboard();
+
+  } catch (err) {
+    console.error('Login error:', err);
+    errorEl.textContent = err.message || 'Could not sign in. Check your email and password.';
+    errorEl.style.display = 'block';
+    btn.textContent = 'Sign In';
+    btn.disabled = false;
+  }
+}
+
+// ── SAVE ORG TO DATABASE ──────────────────────────────────────────────────────
+async function saveOrgToDatabase() {
+  if (!currentUser || !APP.orgData) return;
+
+  const d = APP.orgData;
+
+  try {
+    // Create organization record
+    const { data: org, error: orgError } = await supabaseClient
+      .from('organizations')
+      .insert({
+        user_id:              currentUser.id,
+        onboarding_type:      'conversation',
+        legal_name:           d.orgName || null,
+        mission:              d.mission || null,
+        home_state:           d.homeState || null,
+        org_type_description: d.orgType || null,
+        founder_story:        d.founderStory || null,
+        programs:             d.programs || null,
+        ein:                  (d.ein && d.ein !== 'not_yet' && d.ein !== 'in_progress') ? d.ein : null,
+        website:              (d.website && d.website !== 'Not provided') ? d.website : null,
+        conversation_complete: true,
+        account_created_at:   new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (orgError) throw orgError;
+
+    currentOrgId = org.id;
+
+    // Save board members if we have them
+    const boardMembers = [
+      { full_name: d.board1, role: 'president', display_order: 0 },
+      { full_name: d.board2, role: 'secretary', display_order: 1 },
+      { full_name: d.board3, role: 'treasurer', display_order: 2 },
+    ].filter(m => m.full_name && !m.full_name.startsWith('['));
+
+    if (boardMembers.length > 0) {
+      const { error: boardError } = await supabaseClient
+        .from('board_members')
+        .insert(boardMembers.map(m => ({ ...m, organization_id: currentOrgId })));
+
+      if (boardError) console.error('Board member save error:', boardError);
+    }
+
+    // Save conversation data
+    const { error: convoError } = await supabaseClient
+      .from('conversation_data')
+      .insert({
+        organization_id: currentOrgId,
+        messages:        APP.convoHistory,
+        raw_extraction:  d,
+        why_exists:      d.founderStory || null,
+        founder_name:    d.founderName || null,
+        missing_items:   d.missingItems || [],
+      });
+
+    if (convoError) console.error('Conversation save error:', convoError);
+
+    console.log('✓ Organization saved to database:', currentOrgId);
+
+  } catch (err) {
+    console.error('Database save error:', err);
+    // Do not block the user — they can still use the dashboard
+    // Data will be resaveable from profile settings later
+  }
+}
+
+// ── LOAD USER DASHBOARD (returning user) ──────────────────────────────────────
+async function loadUserDashboard() {
+  if (!currentUser) return;
+
+  try {
+    // Load their organization
+    const { data: org, error } = await supabaseClient
+      .from('organizations')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error || !org) {
+      // No org found — new user, go to landing
+      showPage('pg-landing');
+      return;
+    }
+
+    currentOrgId = org.id;
+
+    // Reconstruct APP.orgData from database
+    APP.orgData = {
+      orgName:      org.legal_name || 'Your Organization',
+      mission:      org.mission || '',
+      homeState:    org.home_state || '',
+      orgType:      org.org_type_description || '',
+      founderStory: org.founder_story || '',
+      programs:     org.programs || '',
+      ein:          org.ein || 'not_yet',
+      website:      org.website || 'Not provided',
+      docsGenerated: org.docs_generated || false,
+      boardIncomplete: false,
+      einPending:   !org.ein,
+    };
+
+    // Load board members
+    const { data: board } = await supabaseClient
+      .from('board_members')
+      .select('*')
+      .eq('organization_id', currentOrgId)
+      .order('display_order');
+
+    if (board) {
+      const president  = board.find(m => m.role === 'president');
+      const secretary  = board.find(m => m.role === 'secretary');
+      const treasurer  = board.find(m => m.role === 'treasurer');
+      APP.orgData.board1 = president?.full_name || '';
+      APP.orgData.board2 = secretary?.full_name || '';
+      APP.orgData.board3 = treasurer?.full_name || '';
+      APP.orgData.boardIncomplete = !president || !secretary || !treasurer;
+    }
+
+    buildDashboard();
+    showPage('pg-dash');
+
+  } catch (err) {
+    console.error('Load dashboard error:', err);
+    showPage('pg-landing');
+  }
+}
+
+// ── CONTINUE WITHOUT ACCOUNT ──────────────────────────────────────────────────
+function continueWithoutAccount() {
+  // If they came from conversation, build dashboard with conversation data
+  if (APP.orgData && APP.orgData.orgName) {
+    buildDashboard();
+    showPage('pg-dash');
+  } else {
+    // If they skipped AI, go straight to dashboard with empty state
+    APP.orgData = { orgName: '', mission: '', homeState: '', docsGenerated: false };
+    buildDashboard();
+    showPage('pg-dash');
+  }
+}
+
+// ── LOGOUT ────────────────────────────────────────────────────────────────────
+async function handleLogout() {
+  await supabaseClient.auth.signOut();
+  currentUser = null;
+  currentOrgId = null;
+  APP.orgData = {};
+  APP.convoHistory = [];
+  APP.exchangeCount = 0;
+  showPage('pg-landing');
+}
+
+// Check auth on load
+document.addEventListener('DOMContentLoaded', checkAuthState);
+
+</script>
+</body>
+</html>
